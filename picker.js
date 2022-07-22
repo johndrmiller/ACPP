@@ -1,11 +1,15 @@
-import {hueWheel, hueTriangle, huePath, rgbReg, svPicker, html, RGBinputs, colorPrev} from "/modules/HTMLconstants.js";
-import {assign, RGBtoHSB, HSBtoRGB, line } from "/modules/globalFunctions.js";
-import {hueCircle, vsCircle} from "/modules/svgAssets.js"
+import {hueWheel, hueTriangle, huePath, rgbReg, svPicker, html, RGBinputs, colorPrev, inputErr} from "./modules/HTMLconstants.js";
+import {assign, RGBtoHSB, HSBtoRGB, line } from "./modules/globalFunctions.js";
+import {hueCircle, vsCircle} from "./modules/svgAssets.js"
 
 let hueAngle = 0;//the relative angle of the hue-picker marker. Determines H value in HSB color space
 
 hueCircle.addEventListener("pointerdown",hue_pointerdown_handler);
 vsCircle.addEventListener("pointerdown", vs_pointerdown_handler);
+
+for (const prop in RGBinputs) {
+    RGBinputs[prop].addEventListener("focus", RGBfocus);
+}
 
 function hue_pointerdown_handler(e){
     hueCircle.removeEventListener("pointerDown", hue_pointerdown_handler);
@@ -26,18 +30,10 @@ function hue_pointermove_handler(e){
     }
     //calculate x position of mouse in relation to center of hue wheel
     //if x is right of hue wheel, value is positive; if left, value is negative
-    if (pointer.x >= hueWheel.center.x) {
-        deltaX = pointer.x - hueWheel.center.x;
-    } else {
-        deltaX = -1*(hueWheel.center.x - pointer.x);
-    }
+    deltaX = pointer.x >= hueWheel.center.x ? pointer.x - hueWheel.center.x : -1*(hueWheel.center.x - pointer.x);
     //calculate y position of mouse in relation to center of hue wheel
     //if y is below hue wheel, value is negative; if above, value is positive
-    if (pointer.y >= hueWheel.center.y) {
-        deltaY = hueWheel.center.y-pointer.y;
-    } else {
-        deltaY = -1*(pointer.y-hueWheel.center.y);
-    }    
+    deltaY = pointer.y >= hueWheel.center.y ? hueWheel.center.y-pointer.y : -1*(pointer.y-hueWheel.center.y);
     //use atan2 to calculate angle (in radians); atan2 takes into account the signs of the passed x and y values preventing the need for further interpretation to find the quadrant manually when using atan
     hueAngle = Math.atan2(deltaY, deltaX);
     //the conversion formulas for HSB to RGB don't like negative angles, this converts a negative value to positive
@@ -82,21 +78,6 @@ function hue_pointerup_handler(e){
     hueCircle.style.cursor = "";
 }
 moveHuePicker();
-
-function RGBfocus(e) {
-    let tar = e.currentTarget;
-    console.log(e.currentTarget);
-    tar.addEventListener("blur", RGBloseFocus);
-    tar.addEventListener("change", RGBupdate);
-}
-
-function RGBloseFocus(e) {
-
-}
-
-function RGBupdate(e) {
-
-}
 
 function vs_pointerdown_handler(e) {
     vsCircle.removeEventListener("pointerDown", vs_pointerdown_handler);
@@ -176,5 +157,47 @@ function vs_pointerup_handler(e) {
     vsCircle.style.cursor = "";
 }
 
+function RGBfocus(e) {
+    let tar = e.currentTarget;
+    console.log(e.currentTarget);
+    tar.addEventListener("blur", RGBloseFocus);
+    tar.addEventListener("input", RGBupdate);
+}
+
+function RGBloseFocus(e) {
+    console.log("lost");
+}
+
+function RGBupdate(e) {
+    let valid = /^\d{1,3}$/g;
+    let entry = e.target.value;
+    let res = valid.test(entry);
+    
+    if (entry.length === 0) return;
+    if (!res || !(0<entry&&entry<255)) {
+        if (colorPrev.classList.contains("hide")) {
+            return;
+        }
+        colorPrev.classList.add("hide");
+        inputErr.classList.remove("hide");
+        return;
+    }
+    if (colorPrev.classList.contains("hide")) {
+        inputErr.classList.add("hide");
+        colorPrev.classList.remove("hide");
+    }
+
+
+}
+
 //rgb regex match: /(\d+)/g
+//1-3 digit number exact match test: /^\d{1,3}$/
+//not match: /^?!\d{1,3}$/
 //string.match(regex) = array;
+
+//when updating colors from text input need to reverse calculation
+//to find position from HSB percentages
+//use saturation percentage first to find point on side 2
+//then use value percentage to find point on that new segment
+//how to get x and y coordinates from those?
+//Compare percentage to rise and then run of lines to get values?

@@ -73,4 +73,3 @@ svDefs.appendChild(pickerTriangle);
 sbSelector.appendChild(vsCircle);
 vsCircle.appendChild(vsCircle.pieces.b);
 vsCircle.appendChild(vsCircle.pieces.w);
-

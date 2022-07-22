@@ -12,6 +12,7 @@ export const hueTriangle = document.getElementById("hueTriangle");
 export const valueTriangle = document.getElementById("valueTriangle");
 export const RGBinputElements = [...document.querySelectorAll(".rgbVals input")];
 export const colorPrev = document.getElementById("selectedColor");
+export const inputErr = document.getElementById("entryError");
 export const rgbReg = /(\d+)/g;
 export let hueTrackDepth, huePath, RGBinputs, tAxis;
 
@@ -25,12 +26,9 @@ hueWheel.center =  {
 wheelCenter.diameter = wheelCenter.clientHeight;
 hueSelector.diameter = hueSelector.getBoundingClientRect().width;
 
-svPicker.box = svPicker.getBoundingClientRect();
-
 hueTrackDepth = (hueWheel.diameter - wheelCenter.diameter)/2;
 huePath = hueTrackDepth/2;
 
-hueTriangle.box = hueTriangle.getBoundingClientRect();
 svPicker.box = svPicker.getBoundingClientRect();
 
 hueTriangle.tPoints = [20, 10, 95, 50, 20, 90].map(x => Math.round(svPicker.box.width*(x/100)));
@@ -45,6 +43,16 @@ RGBinputs = {
     b: RGBinputElements[2]
 }
 
+window.addEventListener('resize', recalc);
+
+function recalc(e){
+    console.log("yes");
+    hueWheel.box = hueWheel.getBoundingClientRect();
+    hueWheel.center.x = hueWheel.box.x+(hueWheel.box.width/2);
+    hueWheel.center.y = hueWheel.box.y+(hueWheel.box.height/2);
+    svPicker.box = svPicker.getBoundingClientRect();
+}
+
 //line equation: y=mx+b
 //m=(y2-y1)/(x2/x1)
 //need to solve for b
@@ -57,4 +65,3 @@ RGBinputs = {
 //
 //box height - point.y = polar coordinate
 //box height - polar coordinate = point.y
-//
