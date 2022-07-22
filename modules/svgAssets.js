@@ -1,4 +1,4 @@
-import { assign } from "./globalFunctions.js";
+import { assign } from "../modules/globalFunctions.js";
 import { hueTrackDepth, huePath, hueSelector, sbSelector, hueTriangle, svDefs } from "./HTMLconstants.js";
 
 const nsp = "http://www.w3.org/2000/svg";

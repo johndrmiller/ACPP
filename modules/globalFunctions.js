@@ -1,4 +1,4 @@
-import { svPicker } from "./HTMLconstants.js";
+import { svPicker } from "../modules/HTMLconstants.js";
 export function assign(ele, obj) {
     let keys = Object.keys(obj);
     keys.forEach(x => {

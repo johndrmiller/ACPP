@@ -1,4 +1,4 @@
-import { line } from "./globalFunctions.js";
+import { line } from "../modules/globalFunctions.js";
 
 export const html = document.getElementsByTagName("html")[0];
 export const picker = document.getElementById("picker");
