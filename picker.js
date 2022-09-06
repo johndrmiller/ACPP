@@ -205,11 +205,11 @@ function SVvals(x,y){
     //4)
     let valueRay = line(shortRay.x1, shortRay.y1,intersectionX,intersectionY);
     //5)
-    let vPercent = Math.round((shortRay.length/valueRay.length)*10)/10;
+    let vPercent = Math.round((shortRay.length/valueRay.length)*100);
     //6)
     let satRay = line(hueTriangle.sides.s2.x1, hueTriangle.sides.s2.y1,intersectionX,intersectionY);
     //7)
-    let sPercent = Math.round((satRay.length/hueTriangle.sides.s2.length)*10)/100;
+    let sPercent = Math.round((satRay.length/hueTriangle.sides.s2.length)*100);
     //8)
     console.log(sPercent, vPercent);  
     mainColor.newHSB({h:mainColor.hsb.h,s:sPercent, b:vPercent});
