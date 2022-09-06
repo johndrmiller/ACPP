@@ -49,13 +49,6 @@ function hue_pointermove_handler(e){
     //calculate angle (in Radians)
     //move picker
     //update UI
-    // new Promise (function(resolve, reject) {
-    //     //calculateAngle() w/ resolve;
-    // }).then(function() {
-    //     //movePicker() w/ resolve?;
-    // }).then(function(){
-    //     //updateUI() w/resolve?;
-    // });
     let pointer, deltaX, deltaY;
     let gapX = window.scrollX;
     let gapY = window.scrollY;
@@ -184,7 +177,6 @@ function moveHuePicker() {
     
 }
 
-function 
 moveHuePicker();
 SVvals(vsCircle.pieces.b.getAttribute("cx"),vsCircle.pieces.b.getAttribute("cy"));
 
@@ -320,3 +312,5 @@ function updatePreview(RGB) {
 //then use value percentage to find point on that new segment
 //how to get x and y coordinates from those?
 //Compare percentage to rise and then run of lines to get values?
+
+
