@@ -54,7 +54,7 @@ export function RGBtoHSB(RGB){
 
     b = cmax*100;
 
-    return {h:Math.round(h*100)/100,s:Math.round(s),b:Math.round(b)}
+    return {h:Math.round(h*100)/100,s:Math.round(s*10)/10,b:Math.round(b*10)/10}
 }
 
 //*Expects HSB color as object {h:0-360, s:0-100, b:0-100}
@@ -113,3 +113,33 @@ export function line(x1, y1, x2, y2) {
         }
     };
 }
+
+export function lerp(a, b, t) {
+    //console.log(a, b, t);
+    return a + (b-a)*(t/100);
+}
+
+export function lerpPoint(point1, point2, t) {
+    //console.log(point2)
+    return {
+        x: Math.round((lerp(point1.x, point2.x, t))*100)/100,
+        y: Math.round((lerp(point1.y, point2.y, t))*100)/100    
+    }
+}
+
+/*
+x = a + (b-a)t
+x-a = (b-a)t
+(x-a)/(b-a) = t
+    let satIntersection = lerpPoint({x:hueTriangle.sides.s2.x1, y:hueTriangle.sides.s2.y1} , {x:hueTriangle.sides.s2.x2, y:hueTriangle.sides.y2}, newHSB.s);
+hueTriangle.tPoints = [20, 10, 95, 50, 20, 90].map(x => Math.round(svPicker.box.width*(x/100)));
+hueTriangle.sides = {
+    s1: line(hueTriangle.tPoints[4],hueTriangle.tPoints[5], hueTriangle.tPoints[0],hueTriangle.tPoints[1]),
+    s2: line(hueTriangle.tPoints[0],hueTriangle.tPoints[1], hueTriangle.tPoints[2],hueTriangle.tPoints[3]),
+    s3: line(hueTriangle.tPoints[2],hueTriangle.tPoints[3], hueTriangle.tPoints[4],hueTriangle.tPoints[5])
+}
+
+20 + (95-20)*t; 20+75*t
+10 + (50-10)*t; 10+40*t
+
+*/

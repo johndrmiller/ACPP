@@ -23,6 +23,7 @@ hueWheel.center =  {
     x: hueWheel.box.x+(hueWheel.box.width/2),
     y: hueWheel.box.y+(hueWheel.box.height/2)
 }
+
 wheelCenter.diameter = wheelCenter.clientHeight;
 hueSelector.diameter = hueSelector.getBoundingClientRect().width;
 
@@ -46,7 +47,6 @@ RGBinputs = {
 window.addEventListener('resize', recalc);
 
 function recalc(e){
-    console.log("yes");
     hueWheel.box = hueWheel.getBoundingClientRect();
     hueWheel.center.x = hueWheel.box.x+(hueWheel.box.width/2);
     hueWheel.center.y = hueWheel.box.y+(hueWheel.box.height/2);
