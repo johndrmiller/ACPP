@@ -1,23 +1,9 @@
 import {hueWheel, hueTriangle, huePath, rgbReg, svPicker, html, RGBinputs, colorPrev, inputErr} from "./modules/HTMLconstants.js";
 import {assign, RGBtoHSB, HSBtoRGB, line, lerp, lerpPoint } from "./modules/globalFunctions.js";
 import {hueCircle, vsCircle} from "./modules/svgAssets.js"
-import {createColor} from "./modules/createColor.js"
+import {CreateColor} from "./modules/CreateColor.js"
 
-//the relative angle of the hue-picker marker in radians. Determines H value in HSB color space, 
-//can be in either degrees or radians, and has methods to convert one to the other
-let hueAngle = {
-    rad:0,
-    deg:0,
-    r2d: function(){
-        this.deg = this.rad*180/Math.PI;
-    },
-    d2r: function(){
-        this.rad = this.deg*Math.PI/180;
-    }
-};
-
-let mainColor = createColor();
-mainColor.newRGB({r:255,g:0,b:0});
+let mainColor = new CreateColor("RGB",{r:255,g:0,b:0});
 
 hueCircle.addEventListener("pointerdown",hue_pointerdown_handler);
 vsCircle.addEventListener("pointerdown", vs_pointerdown_handler);
@@ -45,85 +31,23 @@ function vs_pointerdown_handler(e) {
 }
 
 //calculates the new hsb hue angle from the x and y mouse coordinates when mouse moves.
-function hue_pointermove_handler(e){
-    //calculate angle (in Radians)
-    //move picker
-    //update UI
-    let pointer, deltaX, deltaY;
-    let gapX = window.scrollX;
-    let gapY = window.scrollY;
-    let hueRad;
+function hue_pointermove_handler(e) {
     window.removeEventListener("pointermove",hue_pointermove_handler);
-    pointer = {
-        x: e.clientX,
-        y: e.clientY
-    }
-    //1&2) Calculate x (1) and y (2) position of mouse in relation to center of hue wheel
-    //   if x is right of hue wheel, value is positive; if left, value is negative
-    //   if y is below hue wheel, value is negative; if above, value is positive
-    //3) Use atan2 to calculate angle (in radians);
-    //   atan2 takes into account the signs of the passed x and y values preventing the need to also find the quadrant manually when using atan
-    //4) The conversion formulas for HSB to RGB don't like negative angles, this converts a negative value to positive
-    //5) Convert hueAngle rad value to deg to maintain parity
-    //6) Call moveHuePicker to actually move the element
-
-    //1)
-    deltaX = pointer.x >= hueWheel.center.x ? pointer.x - hueWheel.center.x : -1*(hueWheel.center.x - pointer.x);
-    //2)
-    deltaY = pointer.y >= hueWheel.center.y ? hueWheel.center.y-pointer.y : -1*(pointer.y-hueWheel.center.y);
-    //3)
-    hueRad = Math.atan2(deltaY, deltaX);
-    //4)
-    hueRad = hueRad >= 0 ? hueRad : hueRad + (2*Math.PI);
-    //5)
+    let hueRad = calcRads(e);
     mainColor.newRAD(hueRad);
-    //hueAngle.r2d();
-    //6)
     moveHuePicker();
+    updateUIColors();
     window.addEventListener("pointermove",hue_pointermove_handler);
 }
 
 //calculates xy coordinates within triangle from mouse coordinates
 function vs_pointermove_handler(e) {
     window.removeEventListener("pointermove",vs_pointermove_handler);
-    //1) Assign pointer to mouse coordinates adjusted to be relative to the saturation and value triangle container
-    //2) Assign initial newX and newY values to pointer coordinates
-    //3) If x value were to go left or right of bounds of triangle assign newX to left or right edges of triangle, respectively 
-    //4) For current X value find max and min y values based on top and bottom line equations
-    //   If actual y falls outside of those bounds assign newY as maxY or minY, respectively
-    //5) Assign picker elements to new x and y values, then call sVvals function with them
-
-    //1)
-    let pointer  = {
-        x: e.clientX-svPicker.box.x,
-        y: e.clientY-svPicker.box.y
-    }
-    let keys = Object.keys(vsCircle.pieces);
-    //2)
-    let newX = pointer.x, newY = pointer.y, maxY, minY;
-    //3)
-    if (pointer.x < hueTriangle.sides.s1.x1) {
-        newX = hueTriangle.sides.s1.x1;
-    } else if (pointer.x > hueTriangle.sides.s2.x2) {
-        newX = hueTriangle.sides.s2.x2;
-    }
-    //4)
-    maxY = (newX*hueTriangle.sides.s2.m)+hueTriangle.sides.s2.b;
-    minY = (newX*hueTriangle.sides.s3.m)+hueTriangle.sides.s3.b;
-
-    if (pointer.y < minY) {
-        newY = minY;
-    } else if (pointer.y > maxY) {
-        newY = maxY;
-    }
-    //5)
-    keys.forEach (x => {
-        assign(vsCircle.pieces[x],{
-            cx: newX,
-            cy: newY
-        });
-    });
-    SVvals(newX, newY);
+    let point = newSVcoords(e);
+    moveSVmarker(point);
+    let newSV = SVvals(point.x, point.y);
+    mainColor.newHSB({h:mainColor.hsb.h,s:newSV.s, b:newSV.b});
+    updateUIColors();
     window.addEventListener("pointermove",vs_pointermove_handler);
 }
 
@@ -145,15 +69,43 @@ function vs_pointerup_handler(e) {
     vsCircle.style.cursor = "";
 }
 
+//takes mouse event and converts mouse coordinates to an angle in radians relative to the center of the hue ring
+function calcRads(e) {
+    let deltaX, deltaY, hueRad;
+    //for later implementation to account for scrolled page
+    let gapX = window.scrollX;
+    let gapY = window.scrollY;
+
+    let pointer = {
+        x: e.clientX,
+        y: e.clientY
+    }
+    //1&2) Calculate x (1) and y (2) position of mouse in relation to center of hue wheel
+    //   if x is right of hue wheel, value is positive; if left, value is negative
+    //   if y is below hue wheel, value is negative; if above, value is positive
+    //3) Use atan2 to calculate angle (in radians);
+    //   atan2 takes into account the signs of the passed x and y values preventing the need to also find the quadrant manually when using atan
+    //4) The conversion formulas for HSB to RGB don't like negative angles, this converts a negative value to positive
+    //5) Pass radian value to mainColor to update
+
+    //1)
+    deltaX = pointer.x >= hueWheel.center.x ? pointer.x - hueWheel.center.x : -1*(hueWheel.center.x - pointer.x);
+    //2)
+    deltaY = pointer.y >= hueWheel.center.y ? hueWheel.center.y-pointer.y : -1*(pointer.y-hueWheel.center.y);
+    //3)
+    hueRad = Math.atan2(deltaY, deltaX);
+    //4)
+    hueRad = hueRad >= 0 ? hueRad : hueRad + (2*Math.PI);
+    //5)
+    return hueRad;
+}
+
 //takes hue angle and updates the position of the grabber along the path of the hue track
-//then updates the hue of the hue triangle and updates the text of the RGB input boxes
 function moveHuePicker() {
     //1) Use sin and cos of hueAngle to find new coordinates for circle marker inside of hue track
     //   Sign of Y value is flipped due to Y values going opposite direction in coordinate plane vs on html page
     //   (there may be a better way to calculate, but this is what I came up with)    
-    //2) Convert hueAngle with full saturation and brightness from HSB to RGB
-    //3) Update position of hue picker circles
-    //4) Update fill color of hue triangle and pass existing SV marker coordinates to SVvals to make any adjustment needed and update RGB text boxes
+    //2) Update position of hue picker circles
 
     //1)
     let cos = Math.cos(mainColor.rad);
@@ -162,23 +114,58 @@ function moveHuePicker() {
     let newY = (sin*hueWheel.radius*-1)+hueWheel.radius+(huePath*sin);
     let hKeys = Object.keys(hueCircle.pieces);
     //2)
-    //let newRGB = HSBtoRGB({h:hueAngle.deg,s:100,b:100});
-    //3)
     hKeys.forEach (x => {
         assign(hueCircle.pieces[x],{
             cx: newX,
             cy: newY
         });
-    });
-    //4) NEEDS UPDATED!
-    updateRGBVals(mainColor.rgb);
-    updatePreview(mainColor.rgb);
-    hueTriangle.setAttribute("fill",`rgb(${mainColor.rgb.r},${mainColor.rgb.g},${mainColor.rgb.b})`);
-    
+    });    
 }
 
-moveHuePicker();
-SVvals(vsCircle.pieces.b.getAttribute("cx"),vsCircle.pieces.b.getAttribute("cy"));
+function newSVcoords(e){
+    //1) Assign pointer to mouse coordinates adjusted to be relative to the saturation and value triangle container
+    //2) Assign initial newX and newY values to pointer coordinates
+    //3) If x value were to go left or right of bounds of triangle assign newX to left or right edges of triangle, respectively 
+    //4) For current X value find max and min y values based on top and bottom line equations
+    //   If actual y falls outside of those bounds assign newY as maxY or minY, respectively
+    //5) Assign picker elements to new x and y values, then call sVvals function with them
+
+    //1)
+    let pointer  = {
+        x: e.clientX-svPicker.box.x,
+        y: e.clientY-svPicker.box.y
+    }
+    //2)
+    let newX = pointer.x, newY = pointer.y, maxY, minY;
+    //3)
+    if (pointer.x < hueTriangle.sides.s1.x1) {
+        newX = hueTriangle.sides.s1.x1;
+    } else if (pointer.x > hueTriangle.sides.s2.x2) {
+        newX = hueTriangle.sides.s2.x2;
+    }
+    //4)
+    maxY = (newX*hueTriangle.sides.s2.m)+hueTriangle.sides.s2.b;
+    minY = (newX*hueTriangle.sides.s3.m)+hueTriangle.sides.s3.b;
+
+    if (pointer.y < minY) {
+        newY = minY;
+    } else if (pointer.y > maxY) {
+        newY = maxY;
+    }
+    return {x:newX, y:newY}
+    //5)
+}
+
+function moveSVmarker(point) {
+    let keys = Object.keys(vsCircle.pieces);
+    
+    keys.forEach (x => {
+        assign(vsCircle.pieces[x],{
+            cx: point.x,
+            cy: point.y
+        });
+    });
+}
 
 //uses passed x and y coordinates to calculate brightness and saturation values of color
 //then converts them back to RGB and updates the color preview and the
@@ -205,23 +192,14 @@ function SVvals(x,y){
     //4)
     let valueRay = line(shortRay.x1, shortRay.y1,intersectionX,intersectionY);
     //5)
-    let vPercent = Math.round((shortRay.length/valueRay.length)*100);
+    let vPercent = Math.round((shortRay.length/valueRay.length)*10000)/100;
     //6)
     let satRay = line(hueTriangle.sides.s2.x1, hueTriangle.sides.s2.y1,intersectionX,intersectionY);
     //7)
-    let sPercent = Math.round((satRay.length/hueTriangle.sides.s2.length)*100);
+    let sPercent = Math.round((satRay.length/hueTriangle.sides.s2.length)*10000)/100;
     //8)
-    console.log(sPercent, vPercent);  
-    mainColor.newHSB({h:mainColor.hsb.h,s:sPercent, b:vPercent});
+    return {s:sPercent, b:vPercent}
     //9)
-
-    updateRGBVals(mainColor.rgb);
-    updatePreview(mainColor.rgb);
-}
-
-function updateColor(h,s,v) {
-    let hueDeg = h*180/Math.PI;
-    //let newRGB = 
 }
 
 function RGBfocus(e) {
@@ -238,6 +216,9 @@ function RGBupdate(e) {
     let valid = /^\d{1,3}$/g;
     let entry = e.target.value;
     let res = valid.test(entry);
+    let newRGBs, satIntersection, valLine, valIntersection, oldDeg;
+
+    oldDeg = mainColor.deg;
     
     if (entry.length === 0) return;
     if (!res || !(0<=entry&&entry<=255)) {
@@ -252,31 +233,19 @@ function RGBupdate(e) {
         inputErr.classList.add("hide");
         colorPrev.classList.remove("hide");
     }
-    let newRGBs = {r:RGBinputs.r.value ,g:RGBinputs.g.value , b:RGBinputs.b.value };
+    newRGBs = {r:RGBinputs.r.value ,g:RGBinputs.g.value , b:RGBinputs.b.value };
     
     mainColor.newRGB(newRGBs);
-    console.log(newRGBs, mainColor);
-    //let newHSB = RGBtoHSB(newRGBs);
-    //console.log(newHSB);
-    //console.log(hueTriangle.sides.s2.x1, hueTriangle.sides.s2.y1, );
+    satIntersection = lerpPoint({x:hueTriangle.sides.s2.x1, y:hueTriangle.sides.s2.y1} , {x:hueTriangle.sides.s2.x2, y:hueTriangle.sides.s2.y2}, mainColor.hsb.s);
+    valLine = line(hueTriangle.sides.s1.x1, hueTriangle.sides.s1.y1, satIntersection.x, satIntersection.y);
+    valIntersection = lerpPoint({x:valLine.x1, y:valLine.y1}, {x:valLine.x2,y:valLine.y2},mainColor.hsb.b);
     
-    let satIntersection = lerpPoint({x:hueTriangle.sides.s2.x1, y:hueTriangle.sides.s2.y1} , {x:hueTriangle.sides.s2.x2, y:hueTriangle.sides.s2.y2}, mainColor.hsb.s);
-    let valLine = line(hueTriangle.sides.s1.x1, hueTriangle.sides.s1.y1, satIntersection.x, satIntersection.y);
-    let valIntersection = lerpPoint({x:valLine.x1, y:valLine.y1}, {x:valLine.x2,y:valLine.y2},mainColor.hsb.b);
-
-    //console.log(valIntersection);
-    SVvals(valIntersection.x, valIntersection.y);
-    //moveHuePicker();
-    // if (newHSB.h !== mainColor.deg) {
-    //     mainColor.newDEG(newHSB.h);
-    //     start repeat code
-    //     moveHuePicker();
-    // }
-    //let valuePercent = newHSB.b;
-    //let satPercent = newHSB.s;
-    //console.log(valuePercent, satPercent, newRGBs);
-
-
+    if (mainColor.deg !== oldDeg) {
+        moveHuePicker();
+    }
+    moveSVmarker(valIntersection);
+    updateHue(mainColor.deg);
+    updatePreview(mainColor.rgb);
 
     //we have input, what do we do with it?
     //1) Grab all RGB input values
@@ -291,6 +260,11 @@ function RGBupdate(e) {
     //5) Update current color in preview
 }
 
+function updateHue(DEG) {
+    let hueColor = HSBtoRGB({h:DEG, s:100, b:100});
+    hueTriangle.setAttribute("fill",`rgb(${hueColor.r},${hueColor.g},${hueColor.b})`);
+}
+
 function updateRGBVals(RGB) {
     RGBinputs.r.value = RGB.r;
     RGBinputs.g.value = RGB.g;
@@ -300,6 +274,17 @@ function updateRGBVals(RGB) {
 function updatePreview(RGB) {
     colorPrev.style.backgroundColor = `rgb(${RGB.r},${RGB.g},${RGB.b})`; 
 }
+
+//updates hue triangle color, RGB text values, and preview color
+function updateUIColors(){
+    updateHue(mainColor.deg);
+    updateRGBVals(mainColor.rgb);
+    updatePreview(mainColor.rgb);
+}
+
+moveHuePicker();
+SVvals(vsCircle.pieces.b.getAttribute("cx"),vsCircle.pieces.b.getAttribute("cy"));
+updateUIColors();
 
 //rgb regex match: /(\d+)/g
 //1-3 digit number exact match test: /^\d{1,3}$/

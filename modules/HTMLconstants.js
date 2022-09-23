@@ -32,12 +32,13 @@ huePath = hueTrackDepth/2;
 
 svPicker.box = svPicker.getBoundingClientRect();
 
-hueTriangle.tPoints = [20, 10, 95, 50, 20, 90].map(x => Math.round(svPicker.box.width*(x/100)));
+hueTriangle.tPoints = [20, 10, 89.29, 50, 20, 90].map(x => Math.round(svPicker.box.width*(x/100)));
 hueTriangle.sides = {
     s1: line(hueTriangle.tPoints[4],hueTriangle.tPoints[5], hueTriangle.tPoints[0],hueTriangle.tPoints[1]),
     s2: line(hueTriangle.tPoints[0],hueTriangle.tPoints[1], hueTriangle.tPoints[2],hueTriangle.tPoints[3]),
     s3: line(hueTriangle.tPoints[2],hueTriangle.tPoints[3], hueTriangle.tPoints[4],hueTriangle.tPoints[5])
 }
+
 RGBinputs = {
     r: RGBinputElements[0],
     g: RGBinputElements[1],
@@ -53,15 +54,7 @@ function recalc(e){
     svPicker.box = svPicker.getBoundingClientRect();
 }
 
-//line equation: y=mx+b
-//m=(y2-y1)/(x2/x1)
-//need to solve for b
-//triangle s1 = line between points 3 and 1;
-//triangle s2 = line between points 1 and 2;
-//triangle s3 = line between points 2 and 3;
-//    
 //need to calibrate triangle points based on a more standard axis?
 //or at least multiply the results to account for the inverted coordinate directions?
-//
 //box height - point.y = polar coordinate
 //box height - polar coordinate = point.y
