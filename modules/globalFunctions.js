@@ -80,6 +80,7 @@ export function HSBtoRGB(HSB) {
     if (5<=h1&&h1<6) {
         RGB1 = {r:chroma, g:0, b:X}
     }
+    //console.log((RGB1.r+m)*255, (RGB1.g+m)*255, (RGB1.b+m)*255);
     return {r:Math.round((RGB1.r+m)*255),g:Math.round((RGB1.g+m)*255),b:Math.round((RGB1.b+m)*255)}
 }
 

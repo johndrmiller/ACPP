@@ -32,7 +32,7 @@ huePath = hueTrackDepth/2;
 
 svPicker.box = svPicker.getBoundingClientRect();
 
-hueTriangle.tPoints = [20, 10, 89.29, 50, 20, 90].map(x => Math.round(svPicker.box.width*(x/100)));
+hueTriangle.tPoints = [20, 10, 89.29, 50, 20, 90].map(x => svPicker.box.width*(x/100));
 hueTriangle.sides = {
     s1: line(hueTriangle.tPoints[4],hueTriangle.tPoints[5], hueTriangle.tPoints[0],hueTriangle.tPoints[1]),
     s2: line(hueTriangle.tPoints[0],hueTriangle.tPoints[1], hueTriangle.tPoints[2],hueTriangle.tPoints[3]),

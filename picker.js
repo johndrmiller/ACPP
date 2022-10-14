@@ -146,7 +146,7 @@ function newSVcoords(e){
     //4)
     maxY = (newX*hueTriangle.sides.s2.m)+hueTriangle.sides.s2.b;
     minY = (newX*hueTriangle.sides.s3.m)+hueTriangle.sides.s3.b;
-
+    
     if (pointer.y < minY) {
         newY = minY;
     } else if (pointer.y > maxY) {
@@ -182,7 +182,6 @@ function SVvals(x,y){
     //7) Find percentage of saturation line where passed point sits.
     //8) assign current hue (hueAngle) along with v and s values to new hsb object. Then convert to RGB.
     //9) Update RGB input text boxes and Triangle BG color.
-
     //1)
     let shortRay = line(hueTriangle.tPoints[4], hueTriangle.tPoints[5], x, y);
     //2)

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    
+</head>
+<body>
+    <svg id="testcircle" width="400" height="400" style="border:solid 1px black">
+
+    </svg>
+    <script defer>
+        const nsp = "http://www.w3.org/2000/svg";
+        let testcircle = document.getElementById("testcircle");
+
+        testcircle.diameter = testcircle.clientHeight;
+        testcircle.radius = testcircle.diameter/2;
+        testcircle.box = testcircle.getBoundingClientRect();
+        testcircle.center =  {
+            x: (testcircle.box.width/2),
+            y: (testcircle.box.height/2)
+        };
+
+        testcircle.circle = document.createElementNS(nsp,"circle");
+        testcircle.triangle = document.createElementNS(nsp,"polygon");
+
+        assign(testcircle.circle,{
+            cx: testcircle.center.x,
+            cy: testcircle.center.y,
+            r: testcircle.radius,
+            fill: "rgba(255,255,255,0)",
+            stroke: "black",
+            ["stroke-width"]:"1"
+        });
+
+        testcircle.appendChild(testcircle.circle);
+
+        let angles = [0, 120, 240];
+
+        let points = {
+            p1: {
+                x:(Math.cos(d2r(angles[0]))*testcircle.radius)+testcircle.radius,
+                y:(Math.sin(d2r(angles[0]))*testcircle.radius*-1)+testcircle.radius
+            },
+            p2: {
+                x:(Math.cos(d2r(angles[1]))*testcircle.radius)+testcircle.radius,
+                y:(Math.sin(d2r(angles[1]))*testcircle.radius*-1)+testcircle.radius
+            },
+            p3: {
+                x:(Math.cos(d2r(angles[2]))*testcircle.radius)+testcircle.radius,
+                y:(Math.sin(d2r(angles[2]))*testcircle.radius*-1)+testcircle.radius
+            }
+        }
+
+        assign(testcircle.triangle,{
+            points: [points.p1.x,points.p1.y,points.p2.x,points.p2.y,points.p3.x,points.p3.y],
+            fill: "rgba(255,255,255,0)",
+            stroke: "black",
+            ["stroke-width"]:"1"
+        });
+
+        testcircle.appendChild(testcircle.triangle);
+        
+
+        console.log(points);
+
+        console.log(testcircle.clientHeight);
+
+        function assign(ele, obj) {
+            let keys = Object.keys(obj);
+            keys.forEach(x => {
+                ele.setAttribute(x,obj[x])
+            })
+        }
+
+        function d2r(deg){
+            return deg*Math.PI/180;
+        };
+    </script>
+</body>
+</html>
