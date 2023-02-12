@@ -130,15 +130,11 @@ x-a = (b-a)t
     let satIntersection = lerpPoint({x:hueTriangle.sides.s2.x1, y:hueTriangle.sides.s2.y1} , {x:hueTriangle.sides.s2.x2, y:hueTriangle.sides.y2}, newHSB.s);
 20 + (95-20)*t; 20+75*t
 10 + (50-10)*t; 10+40*t
-*/
 
 
-/*
 HSB color value precesion needs
 Total RGB values (whole numbers): 16,777,216
 Total HSB values (whole numbers): 3,600,000
-
-
 
 Hue:
 Number of RGB Hues: 1530
@@ -147,10 +143,6 @@ degrees per hue: 0.23529
 
 Saturation & Brightness:
 Range of S & B values: 0-100
-
-
-
-
 
 
 */

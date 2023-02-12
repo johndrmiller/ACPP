@@ -6,9 +6,8 @@ import {RGBtoHSB, HSBtoRGB} from "./globalFunctions.js";
 //contains methods to convert radians to degrees, degrees to radians,
 //RGB to HSB, HSB to RGB (using functions from global functions list),
 //and updating the color based on a new RGB, HSB, hue degree value, or hue radian value
-export class CreateColor {
+export class ColorObject {
     constructor(type,value) {
-        this.rgb = {r:0,g:0,b:0};
         this.rgb = {r:0,g:0,b:0};
         this.hsb = {h:0,s:0,b:0};
         this.rad = 0;

@@ -1,9 +1,9 @@
 import {hueWheel, hueTriangle, huePath, rgbReg, svPicker, html, RGBinputs, colorPrev, inputErr} from "./modules/HTMLconstants.js";
 import {assign, RGBtoHSB, HSBtoRGB, line, lerp, lerpPoint } from "./modules/globalFunctions.js";
 import {hueCircle, vsCircle} from "./modules/svgAssets.js"
-import {CreateColor} from "./modules/CreateColor.js"
+import {ColorObject} from "./modules/ColorObject.js"
 
-let mainColor = new CreateColor("RGB",{r:255,g:0,b:0});
+let mainColor = new ColorObject("RGB",{r:255,g:0,b:0});
 
 hueCircle.addEventListener("pointerdown",hue_pointerdown_handler);
 vsCircle.addEventListener("pointerdown", vs_pointerdown_handler);

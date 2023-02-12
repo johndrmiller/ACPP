@@ -40,18 +40,9 @@
         let angles = [0, 120, 240];
 
         let points = {
-            p1: {
-                x:(Math.cos(d2r(angles[0]))*testcircle.radius)+testcircle.radius,
-                y:(Math.sin(d2r(angles[0]))*testcircle.radius*-1)+testcircle.radius
-            },
-            p2: {
-                x:(Math.cos(d2r(angles[1]))*testcircle.radius)+testcircle.radius,
-                y:(Math.sin(d2r(angles[1]))*testcircle.radius*-1)+testcircle.radius
-            },
-            p3: {
-                x:(Math.cos(d2r(angles[2]))*testcircle.radius)+testcircle.radius,
-                y:(Math.sin(d2r(angles[2]))*testcircle.radius*-1)+testcircle.radius
-            }
+            p1: tPoints(angles[0]),
+            p2: tPoints(angles[1]),
+            p3: tPoints(angles[2])
         }
 
         assign(testcircle.triangle,{
@@ -63,11 +54,6 @@
 
         testcircle.appendChild(testcircle.triangle);
         
-
-        console.log(points);
-
-        console.log(testcircle.clientHeight);
-
         function assign(ele, obj) {
             let keys = Object.keys(obj);
             keys.forEach(x => {
@@ -78,6 +64,14 @@
         function d2r(deg){
             return deg*Math.PI/180;
         };
+
+        function tPoints(a) {
+            let r = testcircle.radius;
+            return {
+                x:(Math.cos(d2r(a))*r)+r,
+                y:(Math.sin(d2r(a))*r*-1)+r
+            }
+        }
     </script>
 </body>
 </html>
