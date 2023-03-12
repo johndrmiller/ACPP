@@ -6,46 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <link rel="stylesheet" href="styles.css">
-    <script type="module" defer src="picker.js"></script>
+    <script type="module" defer src="index.js"></script>
 </head>
 <body>
     <h1>Accessible Color Pair Picker</h1>
-    <div id="picker">
-        <div id="hueWheel">
-            <div id="wheelCenter">
-                <svg id="SVpicker" shape-rendering="crispEdges">
-                    <defs>
-                        <linearGradient id="valueGradient" gradientTransform="rotate(90)">
-                            <stop offset="10%" stop-color="white" stop-opacity="1" />
-                            <stop offset="85%" stop-color="black" stop-opacity="1" />
-                        </linearGradient>
-                        <linearGradient id="maskGradient">
-                            <stop offset="5%" stop-color="white" stop-opacity="1" />
-                            <stop offset="90%" stop-color="black" stop-opacity="1" />
-                        </linearGradient>
-                        <linearGradient id="whiteMaskGradient" gradientTransform="rotate(45)">
-                            <stop offset="0%" stop-color="white" stop-opacity="1" />
-                            <stop offset="100%" stop-color="white" stop-opacity="0" />
-                        </linearGradient>
-                        <linearGradient id="blackMaskGradient" gradientTransform="rotate(45)">
-                            <stop offset="0%" stop-color="black" stop-opacity="1" />
-                            <stop offset="100%" stop-color="black" stop-opacity="0" />
-                        </linearGradient>
-                        <mask id="valueMask">
-                            <use href="#pickerTriangle" fill="url(#maskGradient)" />
-                        </mask>
-                    </defs>
-                    <use id="hueTriangle" href="#pickerTriangle" fill="rgb(255,0,0)" x="0" y="0"/>
-                    <use id="valueTriangle" href="#pickerTriangle" fill="url(#valueGradient)" mask="url(#valueMask)" x="0" y="0"/>
-
-                    <svg id="satBrightSelector">
-
-                    </svg>
-                </svg>
-            </div>
-            <svg id="hueSelector"></svg>
-        </div>
-    </div>
+    <div id="picker"></div>
     <div id="colorInfo">
         <div id="colorValues">
             <select name="format" id="colorFormat">

@@ -1,4 +1,4 @@
-import { svPicker } from "../modules/HTMLconstants.js";
+import { picker } from "../index.js";
 export function assign(ele, obj) {
     let keys = Object.keys(obj);
     keys.forEach(x => {
@@ -87,30 +87,30 @@ export function HSBtoRGB(HSB) {
 //expects 4 values that correspond to the x and y values of 2 points 
 //returns an object that represents a line segment with the 2 passed points as endpoints.
 //includes slope, y-intercept, and lenght of line
-export function line(x1, y1, x2, y2) {
-    return {
-        x1:x1,
-        y1:svPicker.box.height-y1,
-        x2:x2,
-        y2:svPicker.box.height-y2,
-        //if line is vertical returns undefined for slope and y-intercept
-        get m(){
-            if (x1 == x2) {
-                return undefined;
+export function line(x1, y1, x2, y2, container) {
+        return {
+            x1:x1,
+            y1:container.height-y1,
+            x2:x2,
+            y2:container.height-y2,
+            //if line is vertical returns undefined for slope and y-intercept
+            get m(){
+                if (x1 == x2) {
+                    return undefined;
+                }
+                return (this.y2-this.y1)/(this.x2-this.x1);
+            },
+            get b() {
+                if (x1 == x2) {
+                    return undefined;
+                }
+                return this.y1-(this.x1*this.m);
+            },
+            get length() {
+                return Math.sqrt(Math.pow(this.x2-this.x1,2) + Math.pow(this.y2-this.y1,2));
             }
-            return (this.y2-this.y1)/(this.x2-this.x1);
-        },
-        get b() {
-            if (x1 == x2) {
-                return undefined;
-            }
-            return this.y1-(this.x1*this.m);
-        },
-        get length() {
-            return Math.sqrt(Math.pow(this.x2-this.x1,2) + Math.pow(this.y2-this.y1,2));
-        }
-    };
-}
+        };
+    }
 
 export function lerp(a, b, t) {
     return a + (b-a)*(t/100);

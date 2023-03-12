@@ -1,126 +1,128 @@
-import {hueWheel, hueTriangle, huePath, rgbReg, svPicker, html, RGBinputs, colorPrev, inputErr} from "./modules/HTMLconstants.js";
-import {assign, RGBtoHSB, HSBtoRGB, line, lerp, lerpPoint } from "./modules/globalFunctions.js";
-import {hueCircle, vsCircle} from "./modules/svgAssets.js"
+import { Picker } from "./modules/Picker.js";
+import {rgbReg, html, RGBinputs, colorPrev, inputErr, container} from "./modules/HTMLconstants.js";
+import {assign, RGBtoHSB, HSBtoRGB, lerp, lerpPoint } from "./modules/globalFunctions.js";
 import {ColorObject} from "./modules/ColorObject.js"
 
 let mainColor = new ColorObject("RGB",{r:255,g:0,b:0});
+export let picker = new Picker(container);
 
-hueCircle.addEventListener("pointerdown",hue_pointerdown_handler);
-vsCircle.addEventListener("pointerdown", vs_pointerdown_handler);
+
+// hueCircle.addEventListener("pointerdown",hue_pointerdown_handler);
+// vsCircle.addEventListener("pointerdown", vs_pointerdown_handler);
 
 for (const prop in RGBinputs) {
     RGBinputs[prop].addEventListener("focus", RGBfocus);
 }
 
-function hue_pointerdown_handler(e){
-    hueCircle.removeEventListener("pointerDown", hue_pointerdown_handler);
-    window.addEventListener("pointermove",hue_pointermove_handler);
-    window.addEventListener("pointerup", hue_pointerup_handler);
-    window.addEventListener("pointerleave", hue_pointerup_handler);
-    html.style.cursor = "grabbing";
-    hueCircle.style.cursor = "inherit";
-}
+// function hue_pointerdown_handler(e){
+//     hueCircle.removeEventListener("pointerDown", hue_pointerdown_handler);
+//     window.addEventListener("pointermove",hue_pointermove_handler);
+//     window.addEventListener("pointerup", hue_pointerup_handler);
+//     window.addEventListener("pointerleave", hue_pointerup_handler);
+//     html.style.cursor = "grabbing";
+//     hueCircle.style.cursor = "inherit";
+// }
 
-function vs_pointerdown_handler(e) {
-    vsCircle.removeEventListener("pointerDown", vs_pointerdown_handler);
-    window.addEventListener("pointermove",vs_pointermove_handler);
-    window.addEventListener("pointerup", vs_pointerup_handler);
-    window.addEventListener("pointerleave", vs_pointerup_handler);
-    html.style.cursor = "grabbing";
-    vsCircle.style.cursor = "inherit";
-}
+// function vs_pointerdown_handler(e) {
+//     vsCircle.removeEventListener("pointerDown", vs_pointerdown_handler);
+//     window.addEventListener("pointermove",vs_pointermove_handler);
+//     window.addEventListener("pointerup", vs_pointerup_handler);
+//     window.addEventListener("pointerleave", vs_pointerup_handler);
+//     html.style.cursor = "grabbing";
+//     vsCircle.style.cursor = "inherit";
+// }
 
 //calculates the new hsb hue angle from the x and y mouse coordinates when mouse moves.
-function hue_pointermove_handler(e) {
-    window.removeEventListener("pointermove",hue_pointermove_handler);
-    let hueRad = calcRads(e);
-    mainColor.newRAD(hueRad);
-    moveHuePicker();
-    updateUIColors();
-    window.addEventListener("pointermove",hue_pointermove_handler);
-}
+// function hue_pointermove_handler(e) {
+//     window.removeEventListener("pointermove",hue_pointermove_handler);
+//     let hueRad = calcRads(e);
+//     mainColor.newRAD(hueRad);
+//     moveHuePicker();
+//     updateUIColors();
+//     window.addEventListener("pointermove",hue_pointermove_handler);
+// }
 
-//calculates xy coordinates within triangle from mouse coordinates
-function vs_pointermove_handler(e) {
-    window.removeEventListener("pointermove",vs_pointermove_handler);
-    let point = newSVcoords(e);
-    moveSVmarker(point);
-    let newSV = SVvals(point.x, point.y);
-    mainColor.newHSB({h:mainColor.hsb.h,s:newSV.s, b:newSV.b});
-    updateUIColors();
-    window.addEventListener("pointermove",vs_pointermove_handler);
-}
+// //calculates xy coordinates within triangle from mouse coordinates
+// function vs_pointermove_handler(e) {
+//     window.removeEventListener("pointermove",vs_pointermove_handler);
+//     let point = newSVcoords(e);
+//     moveSVmarker(point);
+//     let newSV = SVvals(point.x, point.y);
+//     mainColor.newHSB({h:mainColor.hsb.h,s:newSV.s, b:newSV.b});
+//     updateUIColors();
+//     window.addEventListener("pointermove",vs_pointermove_handler);
+// }
 
-function hue_pointerup_handler(e){
-    window.removeEventListener("pointermove",hue_pointermove_handler);
-    window.removeEventListener("pointerup",hue_pointerup_handler);
-    window.removeEventListener("pointerleave", hue_pointerup_handler);
-    hueCircle.addEventListener("pointerdown",hue_pointerdown_handler);
-    html.style.cursor = "";
-    hueCircle.style.cursor = "";
-}
+// function hue_pointerup_handler(e){
+//     window.removeEventListener("pointermove",hue_pointermove_handler);
+//     window.removeEventListener("pointerup",hue_pointerup_handler);
+//     window.removeEventListener("pointerleave", hue_pointerup_handler);
+//     hueCircle.addEventListener("pointerdown",hue_pointerdown_handler);
+//     html.style.cursor = "";
+//     hueCircle.style.cursor = "";
+// }
 
-function vs_pointerup_handler(e) {
-    window.removeEventListener("pointermove",vs_pointermove_handler);
-    window.removeEventListener("pointerup",vs_pointerup_handler);
-    window.removeEventListener("pointerleave", vs_pointerup_handler);
-    vsCircle.addEventListener("pointerdown",vs_pointerdown_handler);
-    html.style.cursor = "";
-    vsCircle.style.cursor = "";
-}
+// function vs_pointerup_handler(e) {
+//     window.removeEventListener("pointermove",vs_pointermove_handler);
+//     window.removeEventListener("pointerup",vs_pointerup_handler);
+//     window.removeEventListener("pointerleave", vs_pointerup_handler);
+//     vsCircle.addEventListener("pointerdown",vs_pointerdown_handler);
+//     html.style.cursor = "";
+//     vsCircle.style.cursor = "";
+// }
 
 //takes mouse event and converts mouse coordinates to an angle in radians relative to the center of the hue ring
-function calcRads(e) {
-    let deltaX, deltaY, hueRad;
-    //for later implementation to account for scrolled page
-    let gapX = window.scrollX;
-    let gapY = window.scrollY;
+// function calcRads(e) {
+//     let deltaX, deltaY, hueRad;
+//     //for later implementation to account for scrolled page
+//     let gapX = window.scrollX;
+//     let gapY = window.scrollY;
 
-    let pointer = {
-        x: e.clientX,
-        y: e.clientY
-    }
-    //1&2) Calculate x (1) and y (2) position of mouse in relation to center of hue wheel
-    //   if x is right of hue wheel, value is positive; if left, value is negative
-    //   if y is below hue wheel, value is negative; if above, value is positive
-    //3) Use atan2 to calculate angle (in radians);
-    //   atan2 takes into account the signs of the passed x and y values preventing the need to also find the quadrant manually when using atan
-    //4) The conversion formulas for HSB to RGB don't like negative angles, this converts a negative value to positive
-    //5) Pass radian value to mainColor to update
+//     let pointer = {
+//         x: e.clientX,
+//         y: e.clientY
+//     }
+//     //1&2) Calculate x (1) and y (2) position of mouse in relation to center of hue wheel
+//     //   if x is right of hue wheel, value is positive; if left, value is negative
+//     //   if y is below hue wheel, value is negative; if above, value is positive
+//     //3) Use atan2 to calculate angle (in radians);
+//     //   atan2 takes into account the signs of the passed x and y values preventing the need to also find the quadrant manually when using atan
+//     //4) The conversion formulas for HSB to RGB don't like negative angles, this converts a negative value to positive
+//     //5) Pass radian value to mainColor to update
 
-    //1)
-    deltaX = pointer.x >= hueWheel.center.x ? pointer.x - hueWheel.center.x : -1*(hueWheel.center.x - pointer.x);
-    //2)
-    deltaY = pointer.y >= hueWheel.center.y ? hueWheel.center.y-pointer.y : -1*(pointer.y-hueWheel.center.y);
-    //3)
-    hueRad = Math.atan2(deltaY, deltaX);
-    //4)
-    hueRad = hueRad >= 0 ? hueRad : hueRad + (2*Math.PI);
-    //5)
-    return hueRad;
-}
+//     //1)
+//     deltaX = pointer.x >= hueWheel.center.x ? pointer.x - hueWheel.center.x : -1*(hueWheel.center.x - pointer.x);
+//     //2)
+//     deltaY = pointer.y >= hueWheel.center.y ? hueWheel.center.y-pointer.y : -1*(pointer.y-hueWheel.center.y);
+//     //3)
+//     hueRad = Math.atan2(deltaY, deltaX);
+//     //4)
+//     hueRad = hueRad >= 0 ? hueRad : hueRad + (2*Math.PI);
+//     //5)
+//     return hueRad;
+// }
 
 //takes hue angle and updates the position of the grabber along the path of the hue track
-function moveHuePicker() {
-    //1) Use sin and cos of hueAngle to find new coordinates for circle marker inside of hue track
-    //   Sign of Y value is flipped due to Y values going opposite direction in coordinate plane vs on html page
-    //   (there may be a better way to calculate, but this is what I came up with)    
-    //2) Update position of hue picker circles
+// function moveHuePicker() {
+//     //1) Use sin and cos of hueAngle to find new coordinates for circle marker inside of hue track
+//     //   Sign of Y value is flipped due to Y values going opposite direction in coordinate plane vs on html page
+//     //   (there may be a better way to calculate, but this is what I came up with)    
+//     //2) Update position of hue picker circles
 
-    //1)
-    let cos = Math.cos(mainColor.rad);
-    let sin = Math.sin(mainColor.rad);
-    let newX = (cos*hueWheel.radius)+hueWheel.radius+(huePath*cos*-1);
-    let newY = (sin*hueWheel.radius*-1)+hueWheel.radius+(huePath*sin);
-    let hKeys = Object.keys(hueCircle.pieces);
-    //2)
-    hKeys.forEach (x => {
-        assign(hueCircle.pieces[x],{
-            cx: newX,
-            cy: newY
-        });
-    });    
-}
+//     //1)
+//     let cos = Math.cos(mainColor.rad);
+//     let sin = Math.sin(mainColor.rad);
+//     let newX = (cos*hueWheel.radius)+hueWheel.radius+(huePath*cos*-1);
+//     let newY = (sin*hueWheel.radius*-1)+hueWheel.radius+(huePath*sin);
+//     let hKeys = Object.keys(hueCircle.pieces);
+//     //2)
+//     hKeys.forEach (x => {
+//         assign(hueCircle.pieces[x],{
+//             cx: newX,
+//             cy: newY
+//         });
+//     });    
+// }
 
 function newSVcoords(e){
     //1) Assign pointer to mouse coordinates adjusted to be relative to the saturation and value triangle container
@@ -281,9 +283,9 @@ function updateUIColors(){
     updatePreview(mainColor.rgb);
 }
 
-moveHuePicker();
-SVvals(vsCircle.pieces.b.getAttribute("cx"),vsCircle.pieces.b.getAttribute("cy"));
-updateUIColors();
+//moveHuePicker();
+//SVvals(vsCircle.pieces.b.getAttribute("cx"),vsCircle.pieces.b.getAttribute("cy"));
+//updateUIColors();
 
 //rgb regex match: /(\d+)/g
 //1-3 digit number exact match test: /^\d{1,3}$/
