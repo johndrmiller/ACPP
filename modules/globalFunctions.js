@@ -1,4 +1,3 @@
-import { picker } from "../index.js";
 export function assign(ele, obj) {
     let keys = Object.keys(obj);
     keys.forEach(x => {
