@@ -3,9 +3,8 @@ import { ColorObject } from "./ColorObject.js";
 
 export class Picker {
     constructor(container){
-        const baseHTML = this.#htmlTemplate();
         this.container = container;
-        this.container.insertAdjacentHTML("afterbegin",baseHTML);
+        this.container.insertAdjacentHTML("afterbegin",this.#htmlTemplate());
         this.currentColor = new ColorObject("RGB",{r:255,g:0,b:0});
         this.#assignHTMLelements();
         this.#createSVGelements();
@@ -14,11 +13,7 @@ export class Picker {
         this.moveHuePicker();
         this.SVvals(this.vsCircle.pieces.b.getAttribute("cx"),this.vsCircle.pieces.b.getAttribute("cy"));
         this.updateUIColors();
-
-        
-
-        //after updating the color in the picker, fire a 
-        //custom event and listen for it from the index.js file
+        container.classList.add("picker");
     }
 
     hue_pointerdown_handler(e){
@@ -84,8 +79,14 @@ export class Picker {
         let gapY = window.scrollY;
     
         let pointer = {
-            x: e.clientX,
-            y: e.clientY
+            x: e.pageX,
+            y: e.pageY-window.scrollY
+        }
+
+        hueWheel.box = hueWheel.getBoundingClientRect();
+        hueWheel.center =  {
+            x: hueWheel.box.x+(hueWheel.box.width/2),
+            y: hueWheel.box.y+(hueWheel.box.height/2)
         }
         //1&2) Calculate x (1) and y (2) position of mouse in relation to center of hue wheel
         //   if x is right of hue wheel, value is positive; if left, value is negative
@@ -135,24 +136,25 @@ export class Picker {
         //3) If x value were to go left or right of bounds of triangle assign newX to left or right edges of triangle, respectively 
         //4) For current X value find max and min y values based on top and bottom line equations
         //   If actual y falls outside of those bounds assign newY as maxY or minY, respectively
-        //5) Assign picker elements to new x and y values, then call sVvals function with them
-    
+        // svPicker.box = svPicker.getBoundingClientRect();
         //1)
+        svPicker.box = svPicker.getBoundingClientRect();    
+
         let pointer  = {
-            x: e.clientX-svPicker.box.x,
-            y: e.clientY-svPicker.box.y
+            x: e.pageX-svPicker.box.x,
+            y: e.pageY-svPicker.box.y-window.scrollY
         }
         //2)
         let newX = pointer.x, newY = pointer.y, maxY, minY;
         //3)
-        if (pointer.x < hueTriangle.sides.s1.x1) {
-            newX = hueTriangle.sides.s1.x1;
-        } else if (pointer.x > hueTriangle.sides.s2.x2) {
-            newX = hueTriangle.sides.s2.x2;
+        if (pointer.x < hueTriangle.sides.left.x1) {
+            newX = hueTriangle.sides.left.x1;
+        } else if (pointer.x > hueTriangle.sides.top.x2) {
+            newX = hueTriangle.sides.top.x2;
         }
         //4)
-        maxY = (newX*hueTriangle.sides.s2.m)+hueTriangle.sides.s2.b;
-        minY = (newX*hueTriangle.sides.s3.m)+hueTriangle.sides.s3.b;
+        maxY = (newX*hueTriangle.sides.top.m)+hueTriangle.sides.top.b;
+        minY = (newX*hueTriangle.sides.bottom.m)+hueTriangle.sides.bottom.b;
         
         if (pointer.y < minY) {
             newY = minY;
@@ -160,7 +162,6 @@ export class Picker {
             newY = maxY;
         }
         return {x:newX, y:newY}
-        //5)
     }
 
     moveSVmarker(point) {
@@ -187,25 +188,14 @@ export class Picker {
         //5) Find percentage of value line where passed point sits
         //6) Create line segment from beginning of side 2 (saturation line) to intersection point
         //7) Find percentage of saturation line where passed point sits.
-        //8) assign current hue (hueAngle) along with v and s values to new hsb object. Then convert to RGB.
-        //9) Update RGB input text boxes and Triangle BG color.
-        //1)
-        let shortRay = line(hueTriangle.tPoints[4], hueTriangle.tPoints[5], x, y, svPicker.box);
-        //2)
-        let intersectionX = shortRay.b == undefined ? shortRay.x1 : (shortRay.b-hueTriangle.sides.s2.b)/(hueTriangle.sides.s2.m-shortRay.m);
-        //3)
-        let intersectionY = shortRay.b == undefined ? hueTriangle.sides.s2.y1 : (shortRay.m*intersectionX)+shortRay.b;
-        //4)
-        let valueRay = line(shortRay.x1, shortRay.y1,intersectionX,intersectionY, svPicker.box);
-        //5)
-        let vPercent = Math.round((shortRay.length/valueRay.length)*10000)/100;
-        //6)
-        let satRay = line(hueTriangle.sides.s2.x1, hueTriangle.sides.s2.y1,intersectionX,intersectionY, svPicker.box);
-        //7)
-        let sPercent = Math.round((satRay.length/hueTriangle.sides.s2.length)*10000)/100;
-        //8)
+        /*1*/let shortRay = line(hueTriangle.tPoints[4], hueTriangle.tPoints[5], x, y, svPicker.box);
+        /*2*/let intersectionX = shortRay.b == undefined ? shortRay.x1 : (shortRay.b-hueTriangle.sides.top.b)/(hueTriangle.sides.top.m-shortRay.m);
+        /*3*/let intersectionY = shortRay.b == undefined ? hueTriangle.sides.top.y1 : (shortRay.m*intersectionX)+shortRay.b;
+        /*4*/let valueRay = line(shortRay.x1, shortRay.y1,intersectionX,intersectionY, svPicker.box);
+        /*5*/let vPercent = Math.round((shortRay.length/valueRay.length)*10000)/100;
+        /*6*/let satRay = line(hueTriangle.sides.top.x1, hueTriangle.sides.top.y1,intersectionX,intersectionY, svPicker.box);
+        /*7*/let sPercent = Math.round((satRay.length/hueTriangle.sides.top.length)*10000)/100;
         return {s:sPercent, b:vPercent}
-        //9)
     }
 
     updateUIColors(){
@@ -214,6 +204,7 @@ export class Picker {
         this.updateHue(color.deg);
         dispatchEvent(event);
         this.updateRGBVals(color.rgb);
+        this.updateHEXVals(color.hex);
     }
 
     updateHue(DEG) {
@@ -222,74 +213,119 @@ export class Picker {
     }
 
     updateRGBVals(RGB){
-        this.RGBinputs.r.value = RGB.r;
-        this.RGBinputs.g.value = RGB.g;
-        this.RGBinputs.b.value = RGB.b;
+        const {RGBinputs} = this;
+        RGBinputs.r.value = RGB.r;
+        RGBinputs.g.value = RGB.g;
+        RGBinputs.b.value = RGB.b;
+    }
+
+    updateHEXVals(HEX) {
+        this.HEXinput.value = HEX;
     }
 
     RGBupdate(e) {
-        let valid = /^\d{1,3}$/g;
+        const {currentColor, rgbError, RGBinputElements, RGBfocus, colorFormat, RGBinputs, hueTriangle, svPicker} = this;
+        const valid = /^\d{1,3}$/g;
         let entry = e.target.value;
-        let res = valid.test(entry);
+        const correctFormat = valid.test(entry);
+        const inRange = 0<=entry&&entry<=255;
+        let otherInputs = RGBinputElements.filter(el => el.id != e.target.id);
+        let errorHidden = rgbError.classList.contains("hide");
         let newRGBs, satIntersection, valLine, valIntersection, oldDeg;
     
-        oldDeg = this.currentColor.deg;
-        // if(!this.entryError.classList.contains("hide")) {
-        //     this.entryError.classList.add("hide");
-        // }
-        // if (entry.length === 0) return;
-        // //<<<This part hides the preview color and shows the error message
-        // //need to find alternative if the color preview is going to be a separate element
-        // if (!res || !(0<=entry&&entry<=255)) {
-        //     // if (colorPrev.classList.contains("hide")) {
-        //     //     return;
-        //     // }
-        //     //colorPrev.classList.add("hide");
-        //     this.entryError.classList.remove("hide");
-        //     return;
-        // }
-        // if (colorPrev.classList.contains("hide")) {
-        //     inputErr.classList.add("hide");
-        //     colorPrev.classList.remove("hide");
-        // }
-        //<<<<
+        oldDeg = currentColor.deg;
+        
+        if (!correctFormat || !inRange) {
+            if (errorHidden) {
+                rgbError.classList.remove("hide");
+                for (const el of otherInputs) {
+                    el.disabled = true;
+                    el.removeEventListener("focus", RGBfocus);
+                }
+                colorFormat.disabled = true;
+            }
+            return;
+        }
+        if ((correctFormat && inRange) && !errorHidden) {
+            rgbError.classList.add("hide");
+            for (const el of otherInputs) {
+                el.disabled = false;
+                el.addEventListener("focus", RGBfocus);
+            }
+            colorFormat.disabled = false;
+        }
 
-        newRGBs = {r:this.RGBinputs.r.value ,g:this.RGBinputs.g.value , b:this.RGBinputs.b.value };
+        newRGBs = {r:RGBinputs.r.value ,g:RGBinputs.g.value , b:RGBinputs.b.value };
         
-        this.currentColor.newRGB(newRGBs);
-        satIntersection = lerpPoint({x:this.hueTriangle.sides.s2.x1, y:this.hueTriangle.sides.s2.y1} , {x:this.hueTriangle.sides.s2.x2, y:this.hueTriangle.sides.s2.y2}, this.currentColor.hsb.s);
-        valLine = line(this.hueTriangle.sides.s1.x1, this.hueTriangle.sides.s1.y1, satIntersection.x, satIntersection.y, this.svPicker.box);
-        valIntersection = lerpPoint({x:valLine.x1, y:valLine.y1}, {x:valLine.x2,y:valLine.y2},this.currentColor.hsb.b);
+        currentColor.newRGB(newRGBs);
+        satIntersection = lerpPoint({x:hueTriangle.sides.top.x1, y:hueTriangle.sides.top.y1} , {x:hueTriangle.sides.top.x2, y:hueTriangle.sides.top.y2}, currentColor.hsb.s);
+        valLine = line(hueTriangle.sides.left.x1, hueTriangle.sides.left.y1, satIntersection.x, satIntersection.y, svPicker.box);
+        valIntersection = lerpPoint({x:valLine.x1, y:valLine.y1}, {x:valLine.x2,y:valLine.y2},currentColor.hsb.b);
         
-        if (this.currentColor.deg !== oldDeg) {
+        if (currentColor.deg !== oldDeg) {
             this.moveHuePicker();
+            this.updateHue(currentColor.deg);
         }
         this.moveSVmarker(valIntersection);
-        this.updateHue(this.currentColor.deg);
-        //updatePreview(mainColor.rgb);
-    
-        //we have input, what do we do with it?
-        //1) Grab all RGB input values
-        //2) Convert to HSB
-        //3) If h is different than hueAngle, set hue angle and update hue picker and triangle color
-            //is there any way to make use of what we've already written or will it need to be completely novel?
-        //4) Update SV picker position 
-        //  a) Take S value and find position on saturation line that correlates
-        //  b) Draw line between new point and (s=0, v=0)
-        //  c) Tacke V value and find position on new line that correlates
-        //  d) Move SV marker to new position
-        //5) Update current color in preview
+        this.updateHEXVals(currentColor.hex);
     }
-    
 
-    RGBfocus(e) {
+    HEXfocus(e) {
         let tar = e.currentTarget;
-        tar.addEventListener("blur", this.RGBloseFocus);
-        tar.addEventListener("input", this.RGBupdate);
+        tar.addEventListener("input", this.HEXonInput);
+        tar.addEventListener("blur", this.HEXloseFocus);
     }
 
-    RGBloseFocus(e) {
-        console.log("lost");
+    HEXonInput(e) {
+        let test = /(#?)[^#a-f\d]/gi;
+        let entry = e.target.value;
+        let invalidCharacters = test.test(entry);
+        let errorHidden = this.hexError.classList.contains("hide");
+        if (invalidCharacters) {
+            if (errorHidden) {
+                this.hexError.classList.remove("hide");
+            }
+            return
+        }
+        if (!errorHidden) {
+            this.hexError.classList.add("hide");
+        }
+    }
+
+    HEXloseFocus(e) {
+        const {currentColor, hexError, hueTriangle, svPicker} = this;
+        let validHEX = /(#?)[a-f\d]{3}(?:[a-f\d]{3})?\b/gi;
+        let entry = e.target.value;
+        let correctFormat = validHEX.test(entry);
+        let errorHidden = hexError.classList.contains("hide");
+        let oldDeg = currentColor.deg;
+        let satIntersection, valLine, valIntersection;
+
+        if (!correctFormat) {
+            if (errorHidden) {
+                hexError.classList.remove("hide");
+            }
+            return;
+        }
+        if (!errorHidden) {
+            hexError.classList.add("hide");
+        }
+        if (entry[0]=="#") {
+            entry=entry.slice(1);
+            e.target.value = entry;
+        }
+
+        currentColor.newHEX(entry);
+        satIntersection = lerpPoint({x:hueTriangle.sides.top.x1, y:hueTriangle.sides.top.y1} , {x:hueTriangle.sides.top.x2, y:hueTriangle.sides.top.y2}, currentColor.hsb.s);
+        valLine = line(hueTriangle.sides.left.x1, hueTriangle.sides.left.y1, satIntersection.x, satIntersection.y, svPicker.box);
+        valIntersection = lerpPoint({x:valLine.x1, y:valLine.y1}, {x:valLine.x2,y:valLine.y2},currentColor.hsb.b);
+
+        if (currentColor.deg !== oldDeg) {
+            this.moveHuePicker();
+            this.updateHue(currentColor.deg);
+        }
+        this.moveSVmarker(valIntersection);
+        this.updateRGBVals(currentColor.rgb);
     }
 
     responsiveRecalc(e) {
@@ -300,13 +336,21 @@ export class Picker {
         svPicker.box = svPicker.getBoundingClientRect();
     }
 
+    switchColorFormat(e) {
+        //if we expand this to any more formats this will need a heavy rewrite.
+        this.RGBvalues.classList.toggle("hide");
+        this.HEXvalues.classList.toggle("hide");
+    }
+    
     #listenerInit() {
         window.addEventListener('resize', this.responsiveRecalc);
         this.hueCircle.addEventListener("pointerdown", this.hue_pointerdown_handler);
         this.vsCircle.addEventListener("pointerdown", this.vs_pointerdown_handler);
         for (const prop in this.RGBinputs) {
-            this.RGBinputs[prop].addEventListener("focus", this.RGBfocus);
+            this.RGBinputs[prop].addEventListener("input", this.RGBupdate);
         }
+        this.HEXinput.addEventListener("focus", this.HEXfocus);
+        this.colorFormat.addEventListener("change", this.switchColorFormat);
     };
 
     #bindMyFunctions(){
@@ -317,99 +361,101 @@ export class Picker {
         this.vs_pointerdown_handler = this.vs_pointerdown_handler.bind(this);
         this.vs_pointermove_handler = this.vs_pointermove_handler.bind(this);
         this.vs_pointerup_handler = this.vs_pointerup_handler.bind(this);
-        this.RGBfocus = this.RGBfocus.bind(this);
-        this.RGBloseFocus = this.RGBloseFocus.bind(this);
+        this.HEXfocus = this.HEXfocus.bind(this);
+        this.HEXloseFocus = this.HEXloseFocus.bind(this);
         this.updateUIColors = this.updateUIColors.bind(this);
         this.updateRGBVals = this.updateRGBVals.bind(this);
+        this.updateHEXVals = this.updateHEXVals.bind(this);
         this.RGBupdate = this.RGBupdate.bind(this);
+        this.switchColorFormat = this.switchColorFormat.bind(this);
+        this.HEXonInput = this.HEXonInput.bind(this);
     }
 
     #createSVGelements() {
         let nsp = "http://www.w3.org/2000/svg";
-        
-        this.hueSelector.diameter = this.hueSelector.getBoundingClientRect().width;
+        this.hueCircle = document.createElementNS(nsp,"svg");
         this.hueTrackDepth = (this.hueWheel.diameter - this.wheelCenter.diameter)/2;
         this.huePath = this.hueTrackDepth/2;
-        this.svPicker.box = this.svPicker.getBoundingClientRect();
-
-        this.hueTriangle.tPoints = [20, 10, 89.29, 50, 20, 90].map(x => this.svPicker.box.width*(x/100));
-        this.hueTriangle.sides = {
-            s1: line(this.hueTriangle.tPoints[4],this.hueTriangle.tPoints[5],this.hueTriangle.tPoints[0],this.hueTriangle.tPoints[1], this.svPicker.box),
-            s2: line(this.hueTriangle.tPoints[0],this.hueTriangle.tPoints[1],this.hueTriangle.tPoints[2],this.hueTriangle.tPoints[3], this.svPicker.box),
-            s3: line(this.hueTriangle.tPoints[2],this.hueTriangle.tPoints[3],this.hueTriangle.tPoints[4],this.hueTriangle.tPoints[5], this.svPicker.box)
+        this.vsCircle = document.createElementNS(nsp,"svg");
+        this.pickerTriangle = document.createElementNS(nsp,"polygon");
+        const {hueSelector, hueTriangle, svPicker, hueCircle, huePath, vsCircle, pickerTriangle} = this;
+        hueSelector.diameter = hueSelector.getBoundingClientRect().width;
+        svPicker.box = svPicker.getBoundingClientRect();
+        hueTriangle.tPoints = [20, 10, 89.29, 50, 20, 90].map(x => svPicker.box.width*(x/100));
+        hueTriangle.sides = {
+            left: line(hueTriangle.tPoints[4],hueTriangle.tPoints[5],hueTriangle.tPoints[0],hueTriangle.tPoints[1], svPicker.box),
+            top: line(hueTriangle.tPoints[0],hueTriangle.tPoints[1],hueTriangle.tPoints[2],hueTriangle.tPoints[3], svPicker.box),
+            bottom: line(hueTriangle.tPoints[2],hueTriangle.tPoints[3],hueTriangle.tPoints[4],hueTriangle.tPoints[5], svPicker.box)
         }
-
-        this.hueCircle = document.createElementNS(nsp,"svg");
-        this.hueCircle.initial = {
-            x: this.hueSelector.diameter/2,
-            y: this.huePath
+        hueCircle.initial = {
+            x: hueSelector.diameter/2,
+            y: huePath
         }
-        this.hueCircle.pieces= {
+        hueCircle.pieces= {
             b: document.createElementNS(nsp,"circle"),
             w: document.createElementNS(nsp, "circle")
         }
-        assign(this.hueCircle,{
-            id:"hueCircle"
+        assign(hueCircle,{
+            id:`${this.container.id}hueCircle`
         })
-        assign(this.hueCircle.pieces.b,{
-            cx: this.hueCircle.initial.x,
-            cy: this.hueCircle.initial.y,
-            r: this.huePath,
+        assign(hueCircle.pieces.b,{
+            cx: hueCircle.initial.x,
+            cy: hueCircle.initial.y,
+            r: huePath,
             fill: "none",
             stroke: "var(--outside-ring)",
             ["stroke-width"]: "1"
         });
-        assign(this.hueCircle.pieces.w,{
-            cx: this.hueCircle.initial.x,
-            cy: this.hueCircle.initial.y,
-            r: this.huePath-2,
+        assign(hueCircle.pieces.w,{
+            cx: hueCircle.initial.x,
+            cy: hueCircle.initial.y,
+            r: huePath-2,
             fill: "rgba(255,255,255,0)",
             stroke: "var(--inside-ring)",
             ["stroke-width"]:"2"
         });
-        this.hueSelector.appendChild(this.hueCircle);
-        this.hueCircle.appendChild(this.hueCircle.pieces.b);
-        this.hueCircle.appendChild(this.hueCircle.pieces.w);
+        hueSelector.appendChild(hueCircle);
+        hueCircle.appendChild(hueCircle.pieces.b);
+        hueCircle.appendChild(hueCircle.pieces.w);
         
-        this.vsCircle = document.createElementNS(nsp,"svg");
-        this.vsCircle.pieces = {
+        vsCircle.pieces = {
             b: document.createElementNS(nsp,"circle"),
             w: document.createElementNS(nsp, "circle")
         }
-        assign(this.vsCircle.pieces.b,{
-            cx: this.hueTriangle.tPoints[2],
-            cy: this.hueTriangle.tPoints[3],
-            r:this.huePath,
+        assign(vsCircle.pieces.b,{
+            cx: hueTriangle.tPoints[2],
+            cy: hueTriangle.tPoints[3],
+            r:huePath,
             fill: "none",
             stroke: "var(--outside-ring)",
             ["stroke-width"]: "1",
             ["shape-rendering"]: "auto"
         });
-        assign(this.vsCircle.pieces.w,{
-            cx: this.hueTriangle.tPoints[2],
-            cy: this.hueTriangle.tPoints[3],
-            r: this.huePath-2,
+        assign(vsCircle.pieces.w,{
+            cx: hueTriangle.tPoints[2],
+            cy: hueTriangle.tPoints[3],
+            r: huePath-2,
             fill: "rgba(255,255,255,0)",
             stroke: "var(--inside-ring)",
             ["stroke-width"]: "2",
             ["shape-rendering"]: "auto"
         });
-        this.sbSelector.appendChild(this.vsCircle);
-        this.vsCircle.appendChild(this.vsCircle.pieces.b);
-        this.vsCircle.appendChild(this.vsCircle.pieces.w);
+        this.sbSelector.appendChild(vsCircle);
+        vsCircle.appendChild(vsCircle.pieces.b);
+        vsCircle.appendChild(vsCircle.pieces.w);
         
-        this.pickerTriangle = document.createElementNS(nsp,"polygon");
-        assign(this.pickerTriangle,{
-            id: "pickerTriangle",
-            points: this.hueTriangle.tPoints,
+        assign(pickerTriangle,{
+            id: `${this.container.id}Triangle`,
+            points: hueTriangle.tPoints,
         });
-        this.svDefs.appendChild(this.pickerTriangle);
+        this.svDefs.appendChild(pickerTriangle);
     }
 
     #assignHTMLelements() {
         this.html = document.getElementsByTagName("html")[0];
-        this.hueWheel = this.container.querySelector("#hueWheel");
+        this.hueWheel = this.container.querySelector(".hueWheel");
         this.hueWheel.diameter = this.hueWheel.clientHeight;
+        console.log(this.hueWheel.clientHeight);
         this.hueWheel.radius = this.hueWheel.diameter/2;
         this.hueWheel.box = this.hueWheel.getBoundingClientRect();
         this.hueWheel.center =  {
@@ -417,36 +463,41 @@ export class Picker {
             y: this.hueWheel.box.y+(this.hueWheel.box.height/2)
         }
 
-        this.hueSelector = this.hueWheel.querySelector("#hueSelector");
-        this.wheelCenter = this.hueWheel.querySelector("#wheelCenter");
+        this.hueSelector = this.hueWheel.querySelector(".hueSelector");
+        this.wheelCenter = this.hueWheel.querySelector(".wheelCenter");
         this.wheelCenter.diameter = this.wheelCenter.clientHeight;
         
-        this.svPicker = this.wheelCenter.querySelector("#SVpicker");
+        this.svPicker = this.wheelCenter.querySelector(".SVpicker");
         this.svDefs = this.svPicker.getElementsByTagName("defs")[0];
-        this.hueTriangle = this.svPicker.querySelector("#hueTriangle");
+        this.hueTriangle = this.svPicker.querySelector(".hueTriangle");
     
-        this.valueTriangle = this.svPicker.querySelector("#valueTriangle");
-        this.sbSelector = this.svPicker.querySelector("#satBrightSelector");
+        this.valueTriangle = this.svPicker.querySelector(".valueTriangle");
+        this.sbSelector = this.svPicker.querySelector(".satBrightSelector");
 
+        this.colorFormat = this.container.querySelector(".colorFormat");
+        this.RGBvalues = this.container.querySelector(".RGBvalues");
+        this.HEXvalues = this.container.querySelector(".HEXvalues");
         this.RGBinputElements = [...this.container.querySelectorAll(".rgbVals input")];
         this.RGBinputs = {
             r: this.RGBinputElements[0],
             g: this.RGBinputElements[1],
             b: this.RGBinputElements[2]
         }
-        this.entryError = this.container.querySelector("#entryError");
+        this.HEXinput = this.container.querySelector(".hexVals input");
+        this.rgbError = this.container.querySelector(".rgbError");
+        this.hexError = this.container.querySelector(".hexError");
     }
 
     #htmlTemplate() {
-        return `<div id="hueWheel">
-            <div id="wheelCenter">
-                <svg id="SVpicker" shape-rendering="crispEdges">
+        return `<div class="hueWheel">
+            <div class="wheelCenter">
+                <svg class="SVpicker" shape-rendering="crispEdges">
                     <defs>
-                        <linearGradient id="valueGradient" gradientTransform="rotate(90)">
+                        <linearGradient id="${this.container.id}valueGradient" gradientTransform="rotate(90)">
                             <stop offset="10%" stop-color="white" stop-opacity="1" />
                             <stop offset="85%" stop-color="black" stop-opacity="1" />
                         </linearGradient>
-                        <linearGradient id="maskGradient">
+                        <linearGradient id="${this.container.id}maskGradient">
                             <stop offset="5%" stop-color="white" stop-opacity="1" />
                             <stop offset="90%" stop-color="black" stop-opacity="1" />
                         </linearGradient>
@@ -458,38 +509,50 @@ export class Picker {
                             <stop offset="0%" stop-color="black" stop-opacity="1" />
                             <stop offset="100%" stop-color="black" stop-opacity="0" />
                         </linearGradient>
-                        <mask id="valueMask">
-                            <use href="#pickerTriangle" fill="url(#maskGradient)" />
+                        <mask id="${this.container.id}valueMask">
+                            <use href="#${this.container.id}Triangle" fill="url(#${this.container.id}maskGradient)" />
                         </mask>
                     </defs>
-                    <use id="hueTriangle" href="#pickerTriangle" fill="rgb(255,0,0)" x="0" y="0"/>
-                    <use id="valueTriangle" href="#pickerTriangle" fill="url(#valueGradient)" mask="url(#valueMask)" x="0" y="0"/>
-                    <svg id="satBrightSelector"></svg>
+                    <use class="hueTriangle" href="#${this.container.id}Triangle" fill="rgb(255,0,0)" x="0" y="0"/>
+                    <use class="valueTriangle" href="#${this.container.id}Triangle" fill="url(#${this.container.id}valueGradient)" mask="url(#${this.container.id}valueMask)" x="0" y="0"/>
+                    <svg class="satBrightSelector"></svg>
                 </svg>
             </div>
-            <svg id="hueSelector"></svg>
+            <svg class="hueSelector"></svg>
         </div>
-        <div id="colorValues">
-            <select name="format" id="colorFormat">
+        <div class="colorValues">
+            <select name="format" class="colorFormat">
                 <option value="RGB">RGB</option>
                 <option value="HEX">HEX</option>
             </select>
-            <div id="RGBvalues">
-                <div class="rgbVals">
-                    <label for="rtext">R:</label>
-                    <input type="text" name="rtext" id="rtext" size="3" maxlength="3">
+            <div ="valueEntry">
+                <div class="RGBvalues">
+                    <div class="rgbVals">
+                        <label for="rtext">R:</label>
+                        <input type="text" name="rtext" id="rtext" size="3" maxlength="3">
+                    </div>
+                    <div class="rgbVals">
+                        <label for="gtext">G:</label>
+                        <input type="text" name="gtext" id="gtext" size="3" maxlength="3">
+                    </div>
+                    <div class="rgbVals">
+                        <label for="btext">B:</label>
+                        <input type="text" name="btext" id="btext" size="3" maxlength="3">
+                    </div>
                 </div>
-                <div class="rgbVals">
-                    <label for="gtext">G:</label>
-                    <input type="text" name="gtext" id="gtext" size="3" maxlength="3">
-                </div>
-                <div class="rgbVals">
-                    <label for="btext">B:</label>
-                    <input type="text" name="btext" id="btext" size="3" maxlength="3">
+                <div class="HEXvalues hide">
+                    <div class="hexVals">
+                        <label for="hextext">#</label>
+                        <input type="text" name="hextext" id="hextext" maxlength="7">
+                    </div>
                 </div>
             </div>
-            <div class="hide" id="entryError">
+                
+            <div class="hide entryError" class="rgbError">
                 <p>Please enter a number between <span>0</span> and <span>255</span>.</p>
+            </div>
+            <div class="hide entryError" class="hexError">
+                <p>Please enter a valid hex string.</p>
             </div>
         </div>`;
     }

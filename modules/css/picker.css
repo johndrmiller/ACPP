@@ -1,0 +1,169 @@
+:root {
+    --picker-background:#222222;
+    --outside-ring: #333;
+    --inside-ring: rgba(255, 255, 255, 0.9);
+}
+.hide {
+    display:none !important;
+}
+* {
+    margin:0;
+}
+.picker {
+    display:flex;
+    display: flex;
+    background-color: var(--picker-background);
+    border-radius:35px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-around;
+}
+    .hueWheel {
+        width:90%;
+        /* height:90%; */
+        aspect-ratio: 1/1;
+        background:conic-gradient(from 90deg, red,magenta,blue,aqua,lime,yellow,red);
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-around;
+        position: relative;
+        margin: 5%;
+    }
+        .wheelCenter {
+            width:85%;
+            height:85%;
+            background-color: var(--picker-background);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-around;
+            position: absolute;
+        }
+            .SVpicker {
+                width:90%;
+                height:90%;
+                left:6%;
+                /* left:23%; */
+                position:absolute;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: space-around;
+            }
+                .satBrightSelector {
+                    width:100%;
+                    height:100%;
+                    position:absolute;
+                    top:0;
+                    touch-action:none;
+                    pointer-events:none;
+                }
+                    .satBrightSelector svg {
+                        cursor:grab;
+                        pointer-events:auto;
+                        touch-action: none;
+                    }
+        .hueSelector {
+            width:100%;
+            height:100%;
+            position:absolute;
+            top:0;
+            pointer-events: none;
+            touch-action: none;
+        }
+            .hueSelector svg {
+                cursor:grab;
+                pointer-events: auto;
+                touch-action: none;
+            }
+    .colorValues {
+        width:80%;
+        margin:0 5% 5% 5%;
+        display:flex;
+        flex-direction: row;
+        padding-left:5%;
+        padding-right:5%;
+        position: relative;
+        /* padding-top: 15px; */
+        gap:20px;
+    }
+        .valueEntry {
+            display: flex;
+            flex-direction: column;
+            width:100%;
+        }
+            .RGBvalues, .HEXvalues {
+                display:flex;
+                flex-direction: row;
+                justify-content: space-between;
+                width: 100%;
+                /* padding-bottom: 20px; */
+                flex-grow:3;
+                flex-shrink:3;
+                gap: 10px;
+            }
+            .rgbVals, .hexVals {
+                display: flex;
+                flex-direction: row;
+            }
+                .rgbVals label, .rgbVals input, .hexVals label, .hexVals input {
+                    display:flex;
+                    flex-direction: row;
+                    font-family: sans-serif;
+                    font-size: 1.1875rem;                
+                }
+                .rgbVals label, .hexVals label {
+                    padding-right: 5px;
+                    align-items: center;
+                    font-weight: 500;
+                    width:30%;
+                    font-style:italic;
+                    color: #e3e3e3;
+                }
+                .hexVals label {
+                    width: auto;
+                    padding-right:10px;
+                }
+                .rgbVals input, .hexVals input {
+                    height:20px;
+                    padding:5px;
+                    border-radius: 5px;
+                    border-style:solid;
+                    border-width:1px;
+                    border-color:#767676;
+                    width: 70%;
+                }
+                .hexVals input {
+                    width: 90%;
+                }
+        .colorFormat {
+            display: flex;
+            flex-grow: 1;
+            flex-shrink:1;
+            height:32px;
+            padding: 0px 5px;
+            border-radius: 5px;
+        }
+        .entryError {
+            font-family: sans-serif;
+            font-size: 0.9125rem;
+            /* letter-spacing: -.03em; */
+            color: black;
+            background-color: beige;
+            border: solid 1px black;
+            padding:5px;
+            position: absolute;
+            top:-40px;
+            width: 85%;
+            text-align: center;
+            display: inline-block;
+            box-shadow: 0px 0px 15px black;
+            border-radius: 3px;
+        }
+            .entryError span {
+                font-weight: bold;
+                color: #e21a23
+            }

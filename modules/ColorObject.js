@@ -12,6 +12,7 @@ export class ColorObject {
         this.hsb = {h:0,s:0,b:0};
         this.rad = 0;
         this.deg = 0;
+        this.hex = "000000";
         switch (type) {
             case "RGB": this.newRGB(value);
             break;
@@ -21,6 +22,7 @@ export class ColorObject {
             break;
             case "RAD": this.newRAD(value);
             break;
+            case "HEX": this.newHEX(value);
         };
     };
     r2d() {
@@ -35,8 +37,15 @@ export class ColorObject {
     rgbtohsb(){
         this.hsb = RGBtoHSB(this.rgb);
     };
+    hextorgb(){
+        this.rgb = {r:parseInt(this.hex.slice(0,2),16),g:parseInt(this.hex.slice(2,4),16),b:parseInt(this.hex.slice(4),16)};
+    }
+    rgbtohex(){
+        this.hex = `${Number(this.rgb.r).toString(16).padStart(2,0)}${Number(this.rgb.g).toString(16).padStart(2,0)}${Number(this.rgb.b).toString(16).padStart(2,0)}`;
+    }
     newRGB(rgb) {
         this.rgb = rgb;
+        this.rgbtohex();
         this.rgbtohsb();
         this.deg = this.hsb.h;
         this.d2r();
@@ -44,6 +53,7 @@ export class ColorObject {
     newHSB(hsb) {
         this.hsb = hsb;
         this.hsbtorgb();
+        this.rgbtohex();
         this.deg = this.hsb.h;
         this.d2r();
     };
@@ -55,4 +65,11 @@ export class ColorObject {
         this.r2d();
         this.newDEG(this.deg);
     };
+    newHEX(hex) {
+        this.hex = hex;
+        this.hextorgb();
+        this.rgbtohsb();
+        this.deg = this.hsb.h;
+        this.d2r();
+    }
 }
