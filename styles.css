@@ -25,23 +25,32 @@ h1 {
 }
 #picker {
     width: 400px;
-    margin-top: 200px;
+    margin-top: 50px;
     /* height: 500px; */
 }
 
-#colorInfo {
+#selectedColors {
     display:flex;
-    flex-direction: column;
+    flex-direction: row;
     width: 400px;
+    margin-top: 30px;
 }
-    
-    
-    #selectedColor {
-        border: 1px solid #555555;
-        background-color: white;
+    .displayColor {
         display: flex;
+        flex-grow: 1;
+        flex-shrink:1;
         flex-direction: row;
-        width: 400px;
         height:30px;
+        background-color:white;
+        border: 1px solid #aaaaaa;
     }
+    #color1 {
+        border-radius: 10px 0px 0px 10px;
+        border-right:0;
+    }
+    #color2 {
+        border-radius: 0px 10px 10px 0px;
+        border-left:0;
+    }
+    
     
