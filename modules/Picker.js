@@ -73,7 +73,7 @@ export class Picker {
 
     calcRads(e) {
         const {hueWheel} = this;
-        let deltaX, deltaY, hueRad;
+        let wheelCenterOffsetX, wheelCenterOffsetY, hueRadians;
         //for later implementation to account for scrolled page
         let gapX = window.scrollX;
         let gapY = window.scrollY;
@@ -88,40 +88,26 @@ export class Picker {
             x: hueWheel.box.x+(hueWheel.box.width/2),
             y: hueWheel.box.y+(hueWheel.box.height/2)
         }
-        //1&2) Calculate x (1) and y (2) position of mouse in relation to center of hue wheel
-        //   if x is right of hue wheel, value is positive; if left, value is negative
-        //   if y is below hue wheel, value is negative; if above, value is positive
-        //3) Use atan2 to calculate angle (in radians);
-        //   atan2 takes into account the signs of the passed x and y values preventing the need to also find the quadrant manually when using atan
-        //4) The conversion formulas for HSB to RGB don't like negative angles, this converts a negative value to positive
     
-        //1)
-        deltaX = pointer.x >= hueWheel.center.x ? pointer.x - hueWheel.center.x : -1*(hueWheel.center.x - pointer.x);
-        //2)
-        deltaY = pointer.y >= hueWheel.center.y ? hueWheel.center.y-pointer.y : -1*(pointer.y-hueWheel.center.y);
-        //3)
-        hueRad = Math.atan2(deltaY, deltaX);
-        //4)
-        hueRad = hueRad >= 0 ? hueRad : hueRad + (2*Math.PI);
-        return hueRad;
+        wheelCenterOffsetX = pointer.x >= hueWheel.center.x ? pointer.x - hueWheel.center.x : -1*(hueWheel.center.x - pointer.x);
+        wheelCenterOffsetY = pointer.y >= hueWheel.center.y ? hueWheel.center.y-pointer.y : -1*(pointer.y-hueWheel.center.y);
+        //atan2 takes into account the signs of the passed x and y values preventing the need to also find the quadrant manually when using atan
+        hueRadians = Math.atan2(wheelCenterOffsetY, wheelCenterOffsetX);
+        //The conversion formulas for HSB to RGB don't like negative angles, this converts a negative value to positive
+        hueRadians = hueRadians >= 0 ? hueRadians : hueRadians + (2*Math.PI);
+        return hueRadians;
     }
     
     moveHuePicker() {
         const {currentColor, hueWheel, hueCircle, huePath} = this;
-            //1) Use sin and cos of hueAngle to find new coordinates for circle marker inside of hue track
-        //   Sign of Y value is flipped due to Y values going opposite direction in coordinate plane vs on html page
-        //   (there may be a better way to calculate, but this is what I came up with)    
-        //2) Update position of hue picker circles
 
-        //1)
-        //console.log("yes");
         let cos = Math.cos(currentColor.rad);
         let sin = Math.sin(currentColor.rad);
         let newX = (cos*hueWheel.radius)+hueWheel.radius+(huePath*cos*-1);
         let newY = (sin*hueWheel.radius*-1)+hueWheel.radius+(huePath*sin);
-        let hKeys = Object.keys(hueCircle.pieces);
-        //2)
-        hKeys.forEach (x => {
+        let hueCircleKeys = Object.keys(hueCircle.pieces);
+
+        hueCircleKeys.forEach (x => {
             assign(hueCircle.pieces[x],{
                 cx: newX,
                 cy: newY
@@ -131,31 +117,25 @@ export class Picker {
 
     newSVcoords(e){
         const {svPicker, hueTriangle} = this;
-        //1) Assign pointer to mouse coordinates adjusted to be relative to the saturation and value triangle container
-        //2) Assign initial newX and newY values to pointer coordinates
-        //3) If x value were to go left or right of bounds of triangle assign newX to left or right edges of triangle, respectively 
-        //4) For current X value find max and min y values based on top and bottom line equations
-        //   If actual y falls outside of those bounds assign newY as maxY or minY, respectively
-        // svPicker.box = svPicker.getBoundingClientRect();
-        //1)
+        
         svPicker.box = svPicker.getBoundingClientRect();    
 
         let pointer  = {
             x: e.pageX-svPicker.box.x,
             y: e.pageY-svPicker.box.y-window.scrollY
         }
-        //2)
         let newX = pointer.x, newY = pointer.y, maxY, minY;
-        //3)
+        
         if (pointer.x < hueTriangle.sides.left.x1) {
             newX = hueTriangle.sides.left.x1;
         } else if (pointer.x > hueTriangle.sides.top.x2) {
             newX = hueTriangle.sides.top.x2;
         }
-        //4)
+        //For current X value find max and min y values based on top and bottom line equations
         maxY = (newX*hueTriangle.sides.top.m)+hueTriangle.sides.top.b;
         minY = (newX*hueTriangle.sides.bottom.m)+hueTriangle.sides.bottom.b;
         
+        //If actual y falls outside of those bounds assign newY as maxY or minY, respectively
         if (pointer.y < minY) {
             newY = minY;
         } else if (pointer.y > maxY) {
@@ -455,7 +435,6 @@ export class Picker {
         this.html = document.getElementsByTagName("html")[0];
         this.hueWheel = this.container.querySelector(".hueWheel");
         this.hueWheel.diameter = this.hueWheel.clientHeight;
-        console.log(this.hueWheel.clientHeight);
         this.hueWheel.radius = this.hueWheel.diameter/2;
         this.hueWheel.box = this.hueWheel.getBoundingClientRect();
         this.hueWheel.center =  {
