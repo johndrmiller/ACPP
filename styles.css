@@ -34,23 +34,39 @@ h1 {
     flex-direction: row;
     width: 400px;
     margin-top: 30px;
+    align-items: center;
 }
     .displayColor {
         display: flex;
         flex-grow: 1;
         flex-shrink:1;
         flex-direction: row;
-        height:30px;
+        height:50px;
         background-color:white;
         border: 1px solid #aaaaaa;
     }
     #color1 {
-        border-radius: 10px 0px 0px 10px;
+        border-radius: 20px 0px 0px 20px;
         border-right:0;
     }
     #color2 {
-        border-radius: 0px 10px 10px 0px;
+        border-radius: 0px 20px 20px 0px;
         border-left:0;
     }
+    #color1.selected {
+        border: 5px solid black;
+        border-radius:25px 5px 5px 25px / 25px 5px 5px 25px;
+        border-right: none;
+    }
+    #color2.selected {
+        border: 5px solid black;
+        border-radius: 5px 25px 25px 5px / 5px 25px 25px 5px;
+        border-left: none;
+    }
+
+    .pointer {
+        cursor: pointer;
+    }
+    /* selected border radius: 5px 5px 5px 15px / 15px 5px 5px 15px; */
     
     
