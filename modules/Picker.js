@@ -2,16 +2,17 @@ import {assign, RGBtoHSB, HSBtoRGB, lerp, lerpPoint, line} from "./globalFunctio
 import { ColorObject } from "./ColorObject.js";
 
 export class Picker {
-    constructor(container){
+    constructor(container, initialColor = new ColorObject("RGB",{r:255,g:255,b:255})){
         this.container = container;
         this.container.insertAdjacentHTML("afterbegin",this.#htmlTemplate());
-        this.currentColor = new ColorObject("RGB",{r:255,g:0,b:0});
+        this.currentColor = initialColor;
         this.#assignHTMLelements();
         this.#createSVGelements();
         this.#bindMyFunctions();
         this.#listenerInit();
         this.moveHuePicker();
-        this.SVvals(this.vsCircle.pieces.b.getAttribute("cx"),this.vsCircle.pieces.b.getAttribute("cy"));
+        this.moveSVmarker(this.#newVSPoints());
+        this.event = new Event("colorChange");
         this.updateUIColors();
         container.classList.add("picker");
     }
@@ -179,10 +180,9 @@ export class Picker {
     }
 
     updateUIColors(){
-        const event = new Event("colorChange");
         const color = this.currentColor;
         this.updateHue(color.deg);
-        dispatchEvent(event);
+        dispatchEvent(this.event);
         this.updateRGBVals(color.rgb);
         this.updateHEXVals(color.hex);
     }
@@ -211,7 +211,7 @@ export class Picker {
         const inRange = 0<=entry&&entry<=255;
         let otherInputs = RGBinputElements.filter(el => el.id != e.target.id);
         let errorHidden = rgbError.classList.contains("hide");
-        let newRGBs, satIntersection, valLine, valIntersection, oldDeg;
+        let newRGBs, oldDeg;
     
         oldDeg = currentColor.deg;
         
@@ -238,16 +238,14 @@ export class Picker {
         newRGBs = {r:RGBinputs.r.value ,g:RGBinputs.g.value , b:RGBinputs.b.value };
         
         currentColor.newRGB(newRGBs);
-        satIntersection = lerpPoint({x:hueTriangle.sides.top.x1, y:hueTriangle.sides.top.y1} , {x:hueTriangle.sides.top.x2, y:hueTriangle.sides.top.y2}, currentColor.hsb.s);
-        valLine = line(hueTriangle.sides.left.x1, hueTriangle.sides.left.y1, satIntersection.x, satIntersection.y, svPicker.box);
-        valIntersection = lerpPoint({x:valLine.x1, y:valLine.y1}, {x:valLine.x2,y:valLine.y2},currentColor.hsb.b);
         
         if (currentColor.deg !== oldDeg) {
             this.moveHuePicker();
             this.updateHue(currentColor.deg);
         }
-        this.moveSVmarker(valIntersection);
+        this.moveSVmarker(this.#newVSPoints());
         this.updateHEXVals(currentColor.hex);
+        dispatchEvent(this.event);
     }
 
     HEXfocus(e) {
@@ -279,7 +277,6 @@ export class Picker {
         let correctFormat = validHEX.test(entry);
         let errorHidden = hexError.classList.contains("hide");
         let oldDeg = currentColor.deg;
-        let satIntersection, valLine, valIntersection;
 
         if (!correctFormat) {
             if (errorHidden) {
@@ -296,16 +293,14 @@ export class Picker {
         }
 
         currentColor.newHEX(entry);
-        satIntersection = lerpPoint({x:hueTriangle.sides.top.x1, y:hueTriangle.sides.top.y1} , {x:hueTriangle.sides.top.x2, y:hueTriangle.sides.top.y2}, currentColor.hsb.s);
-        valLine = line(hueTriangle.sides.left.x1, hueTriangle.sides.left.y1, satIntersection.x, satIntersection.y, svPicker.box);
-        valIntersection = lerpPoint({x:valLine.x1, y:valLine.y1}, {x:valLine.x2,y:valLine.y2},currentColor.hsb.b);
-
+        
         if (currentColor.deg !== oldDeg) {
             this.moveHuePicker();
             this.updateHue(currentColor.deg);
         }
-        this.moveSVmarker(valIntersection);
+        this.moveSVmarker(this.#newVSPoints());
         this.updateRGBVals(currentColor.rgb);
+        dispatchEvent(this.event);
     }
 
     responsiveRecalc(e) {
@@ -322,6 +317,23 @@ export class Picker {
         this.HEXvalues.classList.toggle("hide");
     }
     
+    externalUpdate(newColor){
+        this.currentColor.newRGB(newColor);
+        this.moveHuePicker();
+        this.moveSVmarker(this.#newVSPoints());
+        this.updateHue(this.currentColor.deg);
+        this.updateRGBVals(this.currentColor.rgb);
+        this.updateHEXVals(this.currentColor.hex);
+    }
+
+    #newVSPoints(){
+        const {hueTriangle, svPicker, currentColor} = this;
+        let satIntersection = lerpPoint({x:hueTriangle.sides.top.x1, y:hueTriangle.sides.top.y1} , {x:hueTriangle.sides.top.x2, y:hueTriangle.sides.top.y2}, currentColor.hsb.s);
+        let valLine = line(hueTriangle.sides.left.x1, hueTriangle.sides.left.y1, satIntersection.x, satIntersection.y, svPicker.box);
+        let valIntersection = lerpPoint({x:valLine.x1, y:valLine.y1}, {x:valLine.x2,y:valLine.y2},currentColor.hsb.b);
+        return valIntersection;
+    }
+
     #listenerInit() {
         window.addEventListener('resize', this.responsiveRecalc);
         this.hueCircle.addEventListener("pointerdown", this.hue_pointerdown_handler);
@@ -527,10 +539,10 @@ export class Picker {
                 </div>
             </div>
                 
-            <div class="hide entryError" class="rgbError">
+            <div class="hide entryError rgbError">
                 <p>Please enter a number between <span>0</span> and <span>255</span>.</p>
             </div>
-            <div class="hide entryError" class="hexError">
+            <div class="hide entryError hexError">
                 <p>Please enter a valid hex string.</p>
             </div>
         </div>`;
