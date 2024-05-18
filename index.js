@@ -1,6 +1,7 @@
 import { Picker } from "./modules/Picker.js";
 import {assign, RGBtoHSB, HSBtoRGB, lerp, lerpPoint } from "./modules/globalFunctions.js";
 import {ColorObject} from "./modules/ColorObject.js"
+import {DisplayColor} from "./modules/DisplayColor.js"
 
 const container = document.getElementById("picker");
 const displayColorElements = [...document.getElementById("selectedColors").children];
