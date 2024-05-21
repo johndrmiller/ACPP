@@ -25,8 +25,7 @@ h1 {
 }
 #picker {
     width: 400px;
-    margin-top: 50px;
-    /* height: 500px; */
+    margin-top: 20px;
 }
 
 #selectedColors {
